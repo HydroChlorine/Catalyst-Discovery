@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="A version that works better, generating acceptable mutations. But still need to fix things like randomly selecting [R]s, add more weights to carbon groups and fix the warning generated when mutating.">
+    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="Saving a working version, in case big modifications and refractors of code might damage the functionality.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/generated_smiles.txt" beforeDir="false" afterPath="$PROJECT_DIR$/generated_smiles.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generator_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/generator_main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/smiles_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/smiles_generator.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -36,6 +35,7 @@
   "keyToString": {
     "Python.catalyst_discovery_gaussian.executor": "Run",
     "Python.generator_main.executor": "Run",
+    "Python.smiles_generator.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "main",
@@ -87,9 +87,32 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="smiles_generator" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="pythonProject" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/smiles_generator.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Python.generator_main" />
+        <item itemvalue="Python.smiles_generator" />
         <item itemvalue="Python.catalyst_discovery_gaussian" />
       </list>
     </recent_temporary>
@@ -126,7 +149,15 @@
       <option name="project" value="LOCAL" />
       <updated>1740369573498</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Saving a working version, in case big modifications and refractors of code might damage the functionality.">
+      <option name="closed" value="true" />
+      <created>1740370463571</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1740370463571</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -143,6 +174,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initialization and sort of implementation. Working now but need further improvement." />
     <MESSAGE value="A version that works better, generating acceptable mutations. But still need to fix things like randomly selecting [R]s, add more weights to carbon groups and fix the warning generated when mutating." />
-    <option name="LAST_COMMIT_MESSAGE" value="A version that works better, generating acceptable mutations. But still need to fix things like randomly selecting [R]s, add more weights to carbon groups and fix the warning generated when mutating." />
+    <MESSAGE value="Saving a working version, in case big modifications and refractors of code might damage the functionality." />
+    <option name="LAST_COMMIT_MESSAGE" value="Saving a working version, in case big modifications and refractors of code might damage the functionality." />
   </component>
 </project>
