@@ -1,6 +1,6 @@
 from rdkit import Chem
 import random
-
+import re
 
 class RecursiveSMILESGenerator:
     def __init__(self, base_smiles=r"[R]/[N+](N[R])=C\C1=CC=CC=C1", max_depth=5):
@@ -32,6 +32,19 @@ class RecursiveSMILESGenerator:
             "[R]P([R])",     # Phosphorus fragment with 2 [R] attachments
         ]
 
+    @staticmethod
+    def replace_random_occurrence(s, placeholder, replacement):
+        """
+        Find all occurrences of placeholder in s,
+        randomly select one occurrence, and replace it with replacement.
+        """
+        matches = list(re.finditer(re.escape(placeholder), s))
+        if not matches:
+            return s
+        match = random.choice(matches)
+        start, end = match.span()
+        return s[:start] + replacement + s[end:]
+
     def is_valid_smiles(self, smiles):
         """Checks if the generated SMILES is valid using RDKit."""
         try:
@@ -43,16 +56,13 @@ class RecursiveSMILESGenerator:
     def finalize_smiles(self, smiles):
         """
         Replace any remaining [R] placeholders with explicit hydrogen ([H]).
-        Note: Using explicit [H] may sometimes cause valence warnings,
-        but since you decided to stick with this approach, this function
-        simply replaces [R] with [H].
         """
         return smiles.replace("[R]", "[H]")
 
     def modify_r_groups(self, current_smiles=None, depth=1):
         """
         Recursively replace the [R] groups in a SMILES string.
-        When the recursion depth exceeds max_depth, finalize the SMILES.
+        When the recursion depth exceeds max_depth, finalize by replacing remaining [R] with [H].
         """
         if current_smiles is None:
             current_smiles = self.base_smiles
@@ -63,8 +73,9 @@ class RecursiveSMILESGenerator:
 
         # Try several times to obtain a valid substitution.
         for _ in range(10):
+            # Use our custom replace method to randomly choose a [R] to replace.
             mod = random.choice(self.functional_groups)
-            modified_smiles = current_smiles.replace("[R]", mod, 1)
+            modified_smiles = self.replace_random_occurrence(current_smiles, "[R]", mod)
 
             # If there are still [R] placeholders, process them recursively.
             if "[R]" in modified_smiles:
@@ -76,7 +87,7 @@ class RecursiveSMILESGenerator:
             # Finalize by replacing any remaining [R] with [H].
             finalized = self.finalize_smiles(modified_smiles)
 
-            # Return the finalized SMILES if it is valid and free of [R] placeholders.
+            # Only return the finalized SMILES if it is valid and free of [R] placeholders.
             if self.is_valid_smiles(finalized) and "[R]" not in finalized:
                 return finalized
 

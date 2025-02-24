@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="Initialization and sort of implementation. Working now but need further improvement.">
+    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="A version that works better, generating acceptable mutations. But still need to fix things like randomly selecting [R]s, add more weights to carbon groups and fix the warning generated when mutating.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/generated_smiles.txt" beforeDir="false" afterPath="$PROJECT_DIR$/generated_smiles.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/generator_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/generator_main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/smiles_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/smiles_generator.py" afterDir="false" />
     </list>
@@ -117,7 +118,15 @@
       <option name="project" value="LOCAL" />
       <updated>1740367211790</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="A version that works better, generating acceptable mutations. But still need to fix things like randomly selecting [R]s, add more weights to carbon groups and fix the warning generated when mutating.">
+      <option name="closed" value="true" />
+      <created>1740369573498</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1740369573498</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -133,6 +142,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initialization and sort of implementation. Working now but need further improvement." />
-    <option name="LAST_COMMIT_MESSAGE" value="Initialization and sort of implementation. Working now but need further improvement." />
+    <MESSAGE value="A version that works better, generating acceptable mutations. But still need to fix things like randomly selecting [R]s, add more weights to carbon groups and fix the warning generated when mutating." />
+    <option name="LAST_COMMIT_MESSAGE" value="A version that works better, generating acceptable mutations. But still need to fix things like randomly selecting [R]s, add more weights to carbon groups and fix the warning generated when mutating." />
   </component>
 </project>
