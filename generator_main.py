@@ -1,7 +1,7 @@
 from smiles_generator import RecursiveSMILESGenerator
 
 def main():
-    num_samples = 10  # You can change this number
+    num_samples = 25  # You can change this number
     output_file = "generated_smiles.txt"
 
     generator = RecursiveSMILESGenerator()

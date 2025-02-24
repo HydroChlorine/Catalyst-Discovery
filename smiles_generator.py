@@ -3,58 +3,33 @@ import random
 
 
 class RecursiveSMILESGenerator:
-    def __init__(self, base_smiles=r"[R]/[N+](N[R])=C\C1=CC=CC=C1"):
+    def __init__(self, base_smiles=r"[R]/[N+](N[R])=C\C1=CC=CC=C1", max_depth=5):
+        """
+        :param base_smiles: Initial SMILES string with [R] placeholders.
+        :param max_depth: Maximum recursion steps allowed before finalizing the SMILES.
+        """
         self.base_smiles = base_smiles
-        # Define functional groups that can replace R, including common elements C, O, N, S, and P
+        self.max_depth = max_depth
+        # Define only branching fragments that contain additional [R] placeholders.
         self.functional_groups = [
-            # Carbon-based groups
-            "C",  # Methyl group (CH3)
-            "CC",  # Ethyl group (C2H5)
-            "C1CCCCC1",  # Cyclohexane (C6H12)
-            "C1=CC=CC=C1",  # Phenyl group (C6H5)
-            "C#C",  # Alkyne group (C≡C)
-            "C=C",  # Alkene group (C=C)
+            # Carbon-based branching fragments:
+            "[R]C([R])[R]",  # Tertiary carbon fragment with 3 [R] groups
+            "[R]C([R])",     # Secondary carbon fragment with 2 [R] groups
 
-            # Oxygen-based groups
-            "O",  # Hydroxyl group (OH)
-            "CO",  # Methoxy group (OCH3)
-            "C=O",  # Carbonyl group (C=O)
-            "C(O)=O",  # Carboxyl group (-COOH)
-            "C1CCOCC1",  # Ethoxyethane (C2H5OCH2)
-            "O=C",  # Aldehyde group (C=O)
-            "C(O)C",  # Alcohol with an additional alkyl group
+            # Oxygen-based branching fragments:
+            "[R]O[R]",       # Ether-like fragment (oxygen with two [R] attachments)
 
-            # Nitrogen-based groups
-            "NC",  # Amine group (NH2 with CH3)
-            "N",  # Amino group (NH2)
-            "C1=CC=CC=C1[NH]",  # Phenylamine group (C6H5NH)
-            "C1CCN(C)CC1",  # N-Methylpiperidine (C6H12)
-            "[NH2]",  # Amine group (NH2, simple)
-            "[N+](C)(C)[O-]",  # Nitroso group (-NO)
+            # Nitrogen-based branching fragments:
+            "[R]N([R])[R]",  # Tertiary amine fragment with 3 [R] attachments
+            "[R]N([R])",     # Secondary amine fragment with 2 [R] attachments
 
-            # Sulfur-based groups
-            "S",  # Thiol group (SH)
-            "SC",  # Thiomethyl group (-SH)
-            "S=O",  # Sulfoxide group (C=SO)
-            "C=S",  # Thiocarbonyl group (C=S)
-            "C1CCSCC1",  # Ethane-1,2-dithiol (C4H10S2)
+            # Sulfur-based branching fragments:
+            "[R]S([R])[R]",  # Sulfur fragment with 3 [R] attachments
+            "[R]S([R])",     # Sulfur fragment with 2 [R] attachments
 
-            # Phosphorus-based groups
-            "P",  # Phosphine group (PH2)
-            "P=O",  # Phosphate group (-PO4)
-            "P(CO)O",  # Phosphoryl group (-PO2)
-            "C1CCPCC1",  # Phosphorus in a cyclic structure (C4H9P)
-            "C1=CCPCC1",  # Phosphoryl group in a ring structure
-            "P(O)C",  # Phosphorochloridate group (P(O)C)
-
-            # Recursive examples: Allowing [R] to be part of the functional group itself
-            "[R]O",  # Alcohol with another [R]
-            "[R]N",  # Amine with another [R]
-            "[R]S",  # Thiol with another [R]
-            "[R]P",  # Phosphine with another [R]
-            "[R]C([R])[R]",  # A carbon with 3 mutable R groups
-            "[R]C([R])",  # A carbon with 2 mutable R groups and one H
-            "[R]C",  # A carbon with 1 mutalbe R group and two H
+            # Phosphorus-based branching fragments:
+            "[R]P([R])[R]",  # Phosphorus fragment with 3 [R] attachments
+            "[R]P([R])",     # Phosphorus fragment with 2 [R] attachments
         ]
 
     def is_valid_smiles(self, smiles):
@@ -62,34 +37,55 @@ class RecursiveSMILESGenerator:
         try:
             mol = Chem.MolFromSmiles(smiles)
             return mol is not None
-        except:
+        except Exception:
             return False
 
+    def finalize_smiles(self, smiles):
+        """
+        Replace any remaining [R] placeholders with explicit hydrogen ([H]).
+        Note: Using explicit [H] may sometimes cause valence warnings,
+        but since you decided to stick with this approach, this function
+        simply replaces [R] with [H].
+        """
+        return smiles.replace("[R]", "[H]")
+
     def modify_r_groups(self, current_smiles=None, depth=1):
-        """Replace the R group in a SMILES string and handle recursion."""
+        """
+        Recursively replace the [R] groups in a SMILES string.
+        When the recursion depth exceeds max_depth, finalize the SMILES.
+        """
         if current_smiles is None:
             current_smiles = self.base_smiles
 
-        if depth > 3:  # Limiting recursion depth to avoid infinite loops
-            return current_smiles
+        # Stop recursion when the maximum depth is exceeded.
+        if depth > self.max_depth:
+            return self.finalize_smiles(current_smiles)
 
-        for _ in range(10):  # Try up to 10 times to get a valid substitution
+        # Try several times to obtain a valid substitution.
+        for _ in range(10):
             mod = random.choice(self.functional_groups)
             modified_smiles = current_smiles.replace("[R]", mod, 1)
 
-            # Recursively replace any remaining [R] in the new group
+            # If there are still [R] placeholders, process them recursively.
             if "[R]" in modified_smiles:
-                modified_smiles = self.modify_r_groups(modified_smiles, depth + 1)
+                result = self.modify_r_groups(modified_smiles, depth + 1)
+                if result is None:
+                    continue  # Skip this attempt if recursive substitution failed.
+                modified_smiles = result
 
-            if self.is_valid_smiles(modified_smiles):
-                return modified_smiles  # Return first valid structure
+            # Finalize by replacing any remaining [R] with [H].
+            finalized = self.finalize_smiles(modified_smiles)
 
-        return None  # Return None if no valid structure is found
+            # Return the finalized SMILES if it is valid and free of [R] placeholders.
+            if self.is_valid_smiles(finalized) and "[R]" not in finalized:
+                return finalized
+
+        return None  # Return None if no valid structure is found after several attempts.
 
     def generate_multiple_smiles(self, num_samples=10):
-        """Generate multiple SMILES strings with recursive modifications for [R]."""
+        """Generate multiple valid SMILES strings, ensuring all [R] are replaced."""
         smiles_list = []
-        for _ in range(num_samples):
+        while len(smiles_list) < num_samples:
             smiles = self.modify_r_groups()
             if smiles:
                 smiles_list.append(smiles)
