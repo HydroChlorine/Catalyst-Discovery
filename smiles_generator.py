@@ -1,105 +1,102 @@
 from rdkit import Chem
+from rdkit.Chem import rdchem
 import random
-import re
+
 
 class RecursiveSMILESGenerator:
-    def __init__(self, base_smiles=r"[*]/[N+](N[*])=C\C1=CC=CC=C1", max_depth=5):
-        """
-        :param base_smiles: Initial SMILES string with wildcard placeholders [*].
-        :param max_depth: Maximum recursion steps allowed before finalizing the SMILES.
-        """
+    def __init__(self, base_smiles=r"[*]/[N+](N[*])=C\C1=CC=CC=C1", max_depth=3):
         self.base_smiles = base_smiles
         self.max_depth = max_depth
-        # Define only branching fragments that contain additional [*] placeholders.
+
+        # Fragments that introduce new branches while respecting valence
         self.functional_groups = [
-            # Carbon-based branching fragments:
-            "[*]C([*])[*]",  # Tertiary carbon fragment with 3 [*] groups
-            "[*]C([*])",     # Secondary carbon fragment with 2 [*] groups
-
-            # Oxygen-based branching fragments:
-            "[*]O[*]",       # Ether-like fragment (oxygen with two [*] attachments)
-
-            # Nitrogen-based branching fragments:
-            "[*]N([*])[*]",  # Tertiary amine fragment with 3 [*] attachments
-            "[*]N([*])",     # Secondary amine fragment with 2 [*] attachments
-
-            # Sulfur-based branching fragments:
-            "[*]S([*])[*]",  # Sulfur fragment with 3 [*] attachments
-            "[*]S([*])",     # Sulfur fragment with 2 [*] attachments
-
-            # Phosphorus-based branching fragments:
-            "[*]P([*])[*]",  # Phosphorus fragment with 3 [*] attachments
-            "[*]P([*])",     # Phosphorus fragment with 2 [*] attachments
+            "C([*])",  # Add a methyl group (1 new [*])
+            "C([*])([*])",  # Add a branching carbon (2 new [*])
+            "N([*])",  # Secondary amine (safe for R-groups)
+            "O",  # Ether (no new [*], terminates branch)
+            "Cl",  # Halogen (terminates branch)
         ]
 
-    @staticmethod
-    def replace_random_occurrence(s, placeholder, replacement):
-        """
-        Find all occurrences of placeholder in s,
-        randomly select one occurrence, and replace it with replacement.
-        """
-        matches = list(re.finditer(re.escape(placeholder), s))
-        if not matches:
-            return s
-        match = random.choice(matches)
-        start, end = match.span()
-        return s[:start] + replacement + s[end:]
+    def _tag_core_atoms(self, mol):
+        """Tag atoms in the hydrazine core to ensure substitutions only occur at wildcards."""
+        core_atoms = set()
+        for atom in mol.GetAtoms():
+            # Tag the [N+] and its directly bonded N as part of the core
+            if atom.GetSymbol() == "N" and atom.GetFormalCharge() == 1:
+                core_atoms.add(atom.GetIdx())
+                for neighbor in atom.GetNeighbors():
+                    if neighbor.GetSymbol() == "N":
+                        core_atoms.add(neighbor.GetIdx())
+        return core_atoms
 
-    def is_valid_smiles(self, smiles):
-        """Checks if the generated SMILES is valid using RDKit."""
-        try:
-            mol = Chem.MolFromSmiles(smiles)
-            return mol is not None
-        except Exception:
-            return False
-
-    def finalize_smiles(self, smiles):
-        """
-        Replace any remaining wildcard placeholders [*] with explicit hydrogen ([H]).
-        This "caps" off the molecule so no wildcards remain.
-        """
-        return smiles.replace("[*]", "[H]")
-
-    def modify_r_groups(self, current_smiles=None, depth=1):
-        """
-        Recursively replace the wildcard placeholders [*] in a SMILES string.
-        When the recursion depth exceeds max_depth, finalize by replacing remaining [*] with [H].
-        """
-        if current_smiles is None:
-            current_smiles = self.base_smiles
-
-        # Stop recursion when maximum depth is exceeded.
+    def _replace_substituents(self, mol, core_atoms, depth=0):
+        """Replace wildcards attached to the hydrazine core."""
         if depth > self.max_depth:
-            return self.finalize_smiles(current_smiles)
+            return mol
 
-        # Try several times to obtain a valid substitution.
-        for _ in range(10):
-            # Randomly choose one of the branching fragments and replace a randomly selected [*].
-            mod = random.choice(self.functional_groups)
-            modified_smiles = self.replace_random_occurrence(current_smiles, "[*]", mod)
+        # Find wildcards attached to core atoms (these are the intended substitution points)
+        substituent_wildcards = []
+        for atom in mol.GetAtoms():
+            if atom.GetSymbol() == "*":
+                neighbor = atom.GetNeighbors()[0]
+                if neighbor.GetIdx() in core_atoms:  # <-- KEY CHANGE: Target core-attached [*]
+                    substituent_wildcards.append(atom)
 
-            # If there are still wildcard placeholders, process them recursively.
-            if "[*]" in modified_smiles:
-                result = self.modify_r_groups(modified_smiles, depth + 1)
-                if result is None:
-                    continue  # Skip this attempt if recursive substitution failed.
-                modified_smiles = result
+        if not substituent_wildcards:
+            return mol
 
-            # Finalize by capping off any lingering [*] with [H].
-            finalized = self.finalize_smiles(modified_smiles)
+        # Replace a random substituent wildcard
+        target = random.choice(substituent_wildcards)
+        replacement = random.choice(self.functional_groups)
+        frag = Chem.MolFromSmiles(replacement)
+        if not frag:
+            return None
 
-            # Only return the finalized SMILES if it is valid and free of any [*] placeholders.
-            if self.is_valid_smiles(finalized) and "[*]" not in finalized:
-                return finalized
+        # Perform substitution
+        combo = Chem.ReplaceSubstructs(
+            mol,
+            Chem.MolFromSmiles("[*]"),
+            frag,
+            replacementConnectionPoint=0
+        )
+        if not combo:
+            return None
+        new_mol = combo[0]
 
-        # Return None if no valid structure is found after several attempts.
-        return None
+        # Recurse to process new wildcards (if any)
+        return self._replace_substituents(new_mol, core_atoms, depth + 1)
+
+    def generate_smiles(self):
+        base_mol = Chem.MolFromSmiles(self.base_smiles)
+        if not base_mol:
+            return None
+
+        core_atoms = self._tag_core_atoms(base_mol)
+        final_mol = self._replace_substituents(base_mol, core_atoms)
+        if not final_mol:
+            return None
+
+        # Cap remaining wildcards with [H]
+        final_mol = Chem.ReplaceSubstructs(
+            final_mol,
+            Chem.MolFromSmiles("[*]"),
+            Chem.MolFromSmiles("[H]"),
+            replaceAll=True
+        )[0]
+
+        # Validate and return
+        try:
+            Chem.SanitizeMol(final_mol)
+            return Chem.MolToSmiles(final_mol, canonical=True)
+        except:
+            return None
 
     def generate_multiple_smiles(self, num_samples=10):
-        """Generate multiple valid SMILES strings, ensuring all [*] placeholders are replaced."""
         smiles_list = []
-        while len(smiles_list) < num_samples:
-            smiles = self.modify_r_groups()
-            if smiles:
+        for _ in range(num_samples * 2):
+            if len(smiles_list) >= num_samples:
+                break
+            smiles = self.generate_smiles()
+            if smiles and "[*]" not in smiles:
                 smiles_list.append(smiles)
-        return smiles_list
+        return smiles_list[:num_samples]
