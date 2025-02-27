@@ -1,90 +1,89 @@
 from rdkit import Chem
 from rdkit.Chem import rdchem
 import random
+import numpy as np
 
 
 class RecursiveSMILESGenerator:
-    def __init__(self, base_smiles=r"[*]/[N+](N[*])=C\C1=CC=CC=C1", max_depth=3):
+    def __init__(self, base_smiles=r"[*]/[N+](N[*])=C\C1=CC=CC=C1", max_depth=6):
         self.base_smiles = base_smiles
         self.max_depth = max_depth
 
-        # Fragments that introduce new branches while respecting valence
-        self.functional_groups = [
-            "C([*])",  # Add a methyl group (1 new [*])
-            "C([*])([*])",  # Add a branching carbon (2 new [*])
-            "N([*])",  # Secondary amine (safe for R-groups)
-            "O",  # Ether (no new [*], terminates branch)
-            "Cl",  # Halogen (terminates branch)
-        ]
+        # Multi-branching fragments with different probabilities
+        self.fragments = {
+            # High branching potential (weight 3.0)
+            "C([*])([*])[*]": 3.0,  # 3 branches
+            "N([*])([*])[*]": 2.0,  # 3 branches
+            "C1([*])CC([*])CC1": 2.5,  # Cyclic with 2 branches
 
-    def _tag_core_atoms(self, mol):
-        """Tag atoms in the hydrazine core to ensure substitutions only occur at wildcards."""
-        core_atoms = set()
-        for atom in mol.GetAtoms():
-            # Tag the [N+] and its directly bonded N as part of the core
-            if atom.GetSymbol() == "N" and atom.GetFormalCharge() == 1:
-                core_atoms.add(atom.GetIdx())
-                for neighbor in atom.GetNeighbors():
-                    if neighbor.GetSymbol() == "N":
-                        core_atoms.add(neighbor.GetIdx())
-        return core_atoms
+            # Moderate branching (weight 1.5)
+            "C([*])=C([*])": 1.5,  # Double bond branch
+            "C#C[*]": 1.5,  # Triple bond branch
 
-    def _replace_substituents(self, mol, core_atoms, depth=0):
-        """Replace wildcards attached to the hydrazine core."""
-        if depth > self.max_depth:
+            # Terminating groups (weight 0.5)
+            "Cl": 0.5,
+            "O": 0.5,
+            "C": 0.3  # Keep methyl rare to avoid repetition
+        }
+
+    def _get_random_fragment(self, depth):
+        """Depth-aware fragment selection (more branching early)"""
+        weights = []
+        for frag, base_weight in self.fragments.items():
+            if depth < self.max_depth // 2:
+                # Boost branching fragments early
+                weight = base_weight * (1 + frag.count('[*]'))
+            else:
+                # Favor terminating groups late
+                weight = base_weight / (1 + frag.count('[*]'))
+            weights.append(weight)
+
+        return random.choices(
+            list(self.fragments.keys()),
+            weights=weights,
+            k=1
+        )[0]
+
+    def _recursive_replace(self, mol, depth=0):
+        if depth >= self.max_depth:
             return mol
 
-        # Find wildcards attached to core atoms (these are the intended substitution points)
-        substituent_wildcards = []
-        for atom in mol.GetAtoms():
-            if atom.GetSymbol() == "*":
-                neighbor = atom.GetNeighbors()[0]
-                if neighbor.GetIdx() in core_atoms:  # <-- KEY CHANGE: Target core-attached [*]
-                    substituent_wildcards.append(atom)
-
-        if not substituent_wildcards:
+        wildcards = [atom for atom in mol.GetAtoms() if atom.GetSymbol() == "*"]
+        if not wildcards:
             return mol
 
-        # Replace a random substituent wildcard
-        target = random.choice(substituent_wildcards)
-        replacement = random.choice(self.functional_groups)
-        frag = Chem.MolFromSmiles(replacement)
-        if not frag:
-            return None
+        # Replace ALL wildcards in random order
+        random.shuffle(wildcards)
+        for atom in wildcards.copy():
+            try:
+                replacement = self._get_random_fragment(depth)
+                frag = Chem.MolFromSmiles(replacement)
+                combo = Chem.ReplaceSubstructs(mol, Chem.MolFromSmiles("[*]"), frag)
+                mol = combo[0]
+                Chem.SanitizeMol(mol)
+                # Immediately recurse for new wildcards
+                mol = self._recursive_replace(mol, depth + 1)
+            except:
+                continue
 
-        # Perform substitution
-        combo = Chem.ReplaceSubstructs(
-            mol,
-            Chem.MolFromSmiles("[*]"),
-            frag,
-            replacementConnectionPoint=0
-        )
-        if not combo:
-            return None
-        new_mol = combo[0]
-
-        # Recurse to process new wildcards (if any)
-        return self._replace_substituents(new_mol, core_atoms, depth + 1)
+        return mol
 
     def generate_smiles(self):
         base_mol = Chem.MolFromSmiles(self.base_smiles)
         if not base_mol:
             return None
 
-        core_atoms = self._tag_core_atoms(base_mol)
-        final_mol = self._replace_substituents(base_mol, core_atoms)
-        if not final_mol:
-            return None
+        # Perform aggressive replacement
+        final_mol = self._recursive_replace(base_mol)
 
-        # Cap remaining wildcards with [H]
+        # Final cleanup: replace remaining * with random groups
         final_mol = Chem.ReplaceSubstructs(
             final_mol,
             Chem.MolFromSmiles("[*]"),
-            Chem.MolFromSmiles("[H]"),
+            Chem.MolFromSmiles(random.choice(["C", "Cl", "O"])),
             replaceAll=True
         )[0]
 
-        # Validate and return
         try:
             Chem.SanitizeMol(final_mol)
             return Chem.MolToSmiles(final_mol, canonical=True)
@@ -92,11 +91,9 @@ class RecursiveSMILESGenerator:
             return None
 
     def generate_multiple_smiles(self, num_samples=10):
-        smiles_list = []
-        for _ in range(num_samples * 2):
-            if len(smiles_list) >= num_samples:
-                break
+        seen = set()
+        while len(seen) < num_samples:
             smiles = self.generate_smiles()
-            if smiles and "[*]" not in smiles:
-                smiles_list.append(smiles)
-        return smiles_list[:num_samples]
+            if smiles and smiles not in seen:
+                seen.add(smiles)
+        return list(seen)
