@@ -1,99 +1,107 @@
 from rdkit import Chem
 from rdkit.Chem import rdchem
 import random
-import numpy as np
+import time
+from tqdm import tqdm
 
 
 class RecursiveSMILESGenerator:
-    def __init__(self, base_smiles=r"[*]/[N+](N[*])=C\C1=CC=CC=C1", max_depth=6):
+    def __init__(self, base_smiles=r"[*]/[N+](N[*])=C\C1=CC=CC=C1", max_depth=3):
         self.base_smiles = base_smiles
         self.max_depth = max_depth
 
-        # Multi-branching fragments with different probabilities
-        self.fragments = {
-            # High branching potential (weight 3.0)
-            "C([*])([*])[*]": 3.0,  # 3 branches
-            "N([*])([*])[*]": 2.0,  # 3 branches
-            "C1([*])CC([*])CC1": 2.5,  # Cyclic with 2 branches
+        # Updated fragments with nitrogen and oxygen groups
+        self.fragments = [
+            # Carbon-based
+            ("C", 0.2),  # Simple termination
+            ("C([*])", 0.4),  # Single branch
+            ("C([*])([*])", 0.2),  # Double branch
 
-            # Moderate branching (weight 1.5)
-            "C([*])=C([*])": 1.5,  # Double bond branch
-            "C#C[*]": 1.5,  # Triple bond branch
+            # Nitrogen-based (valence-safe)
+            ("N([*])", 0.3),  # Secondary amine
+            ("N([*])(C)", 0.2),  # Tertiary amine (methyl group)
+            ("NC([*])", 0.2),  # Amino group with branch
 
-            # Terminating groups (weight 0.5)
-            "Cl": 0.5,
-            "O": 0.5,
-            "C": 0.3  # Keep methyl rare to avoid repetition
-        }
+            # Oxygen-based
+            ("O[*]", 0.4),  # Ether linkage
+            ("OC([*])", 0.3),  # Methoxy with branch
+            ("O", 0.3),  # Hydroxyl termination
 
-    def _get_random_fragment(self, depth):
-        """Depth-aware fragment selection (more branching early)"""
-        weights = []
-        for frag, base_weight in self.fragments.items():
-            if depth < self.max_depth // 2:
-                # Boost branching fragments early
-                weight = base_weight * (1 + frag.count('[*]'))
-            else:
-                # Favor terminating groups late
-                weight = base_weight / (1 + frag.count('[*]'))
-            weights.append(weight)
+            # Halogens and others
+            ("Cl", 0.3),
+            ("F", 0.2)
+        ]
 
-        return random.choices(
-            list(self.fragments.keys()),
-            weights=weights,
-            k=1
-        )[0]
+        self.wildcard = Chem.MolFromSmiles("[*]")
+        self.base_mol = Chem.MolFromSmiles(base_smiles)
 
-    def _recursive_replace(self, mol, depth=0):
-        if depth >= self.max_depth:
-            return mol
+        # Validate base molecule
+        if not self.base_mol:
+            raise ValueError("Invalid base SMILES string")
 
-        wildcards = [atom for atom in mol.GetAtoms() if atom.GetSymbol() == "*"]
-        if not wildcards:
-            return mol
-
-        # Replace ALL wildcards in random order
-        random.shuffle(wildcards)
-        for atom in wildcards.copy():
-            try:
-                replacement = self._get_random_fragment(depth)
-                frag = Chem.MolFromSmiles(replacement)
-                combo = Chem.ReplaceSubstructs(mol, Chem.MolFromSmiles("[*]"), frag)
-                mol = combo[0]
-                Chem.SanitizeMol(mol)
-                # Immediately recurse for new wildcards
-                mol = self._recursive_replace(mol, depth + 1)
-            except:
-                continue
-
-        return mol
-
-    def generate_smiles(self):
-        base_mol = Chem.MolFromSmiles(self.base_smiles)
-        if not base_mol:
-            return None
-
-        # Perform aggressive replacement
-        final_mol = self._recursive_replace(base_mol)
-
-        # Final cleanup: replace remaining * with random groups
-        final_mol = Chem.ReplaceSubstructs(
-            final_mol,
-            Chem.MolFromSmiles("[*]"),
-            Chem.MolFromSmiles(random.choice(["C", "Cl", "O"])),
-            replaceAll=True
-        )[0]
-
+    def _safe_replace(self, mol, depth):
+        """Non-recursive replacement with depth tracking"""
         try:
-            Chem.SanitizeMol(final_mol)
-            return Chem.MolToSmiles(final_mol, canonical=True)
+            temp = Chem.RWMol(mol)
+            wildcards = [atom for atom in temp.GetAtoms() if atom.GetSymbol() == "*"]
+
+            if not wildcards or depth > self.max_depth:
+                return temp
+
+            # Replace a random wildcard
+            target = random.choice(wildcards)
+            frag, _ = random.choices(
+                self.fragments,
+                weights=[w for _, w in self.fragments],
+                k=1
+            )[0]
+
+            # Perform substitution
+            combo = Chem.ReplaceSubstructs(
+                temp.GetMol(),
+                self.wildcard,
+                Chem.MolFromSmiles(frag),
+                replaceAll=False
+            )[0]
+
+            return self._safe_replace(combo, depth + 1)
+
         except:
             return None
 
-    def generate_multiple_smiles(self, num_samples=10):
-        seen = set()
-        while len(seen) < num_samples:
-            smiles = self.generate_smiles()
-            if smiles and smiles not in seen:
-                seen.add(smiles)
-        return list(seen)
+    def generate_smiles(self, max_attempts=50):
+        """Generate one valid SMILES with attempt limiting"""
+        for _ in range(max_attempts):
+            try:
+                result = self._safe_replace(self.base_mol, 0)
+                if not result:
+                    continue
+
+                # Finalize molecule
+                result = Chem.ReplaceSubstructs(
+                    result,
+                    self.wildcard,
+                    Chem.MolFromSmiles("C"),  # Final replacement with carbon
+                    replaceAll=True
+                )[0]
+
+                Chem.SanitizeMol(result)
+                return Chem.MolToSmiles(result, canonical=True)
+
+            except Exception as e:
+                continue
+        return None
+
+    def generate_multiple_smiles(self, num_samples, timeout=30):
+        """Guaranteed return with timeout"""
+        results = set()
+        start = time.time()
+
+        with tqdm(total=num_samples, desc="Generating") as pbar:
+            while len(results) < num_samples and (time.time() - start) < timeout:
+                smiles = self.generate_smiles()
+                if smiles and smiles not in results:
+                    results.add(smiles)
+                    pbar.update(1)
+
+        return list(results)
