@@ -1,18 +1,21 @@
 from smiles_generator import RecursiveSMILESGenerator
 
+
 def main():
-    num_samples = 10  # You can change this number
-    output_file = "generated_smiles.txt"
+    generator = RecursiveSMILESGenerator(max_depth=7)
 
-    generator = RecursiveSMILESGenerator()
-    smiles_list = generator.generate_multiple_smiles(num_samples)
+    # Generate 10 SMILES with 60-second timeout
+    smiles_list = generator.generate_multiple_smiles(
+        num_samples=20,
+        timeout=60
+    )
 
-    # Save to a text file
-    with open(output_file, "w") as f:
-        for smiles in smiles_list:
-            f.write(smiles + "\n")
+    # Save results
+    with open("generated_smiles.txt", "w") as f:
+        f.write("\n".join(smiles_list))
 
-    print(f"Generated {num_samples} SMILES structures and saved them to '{output_file}'.")
+    print(f"\nGenerated {len(smiles_list)} valid structures!")
+
 
 if __name__ == "__main__":
     main()

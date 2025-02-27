@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="Saving a working version, in case big modifications and refractors of code might damage the functionality.">
+    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="A actual version that can generate a lot of complex structures, but still need refinement that: &#10;1： Simple structures should also be generated&#10;2: Should be allow more possible ring structures, maybe by using combo of wildcards.&#10;3: Remember to control the direction of double bonds.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/generated_smiles.txt" beforeDir="false" afterPath="$PROJECT_DIR$/generated_smiles.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/generator_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/generator_main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/smiles_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/smiles_generator.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -31,17 +32,17 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.catalyst_discovery_gaussian.executor": "Run",
-    "Python.generator_main.executor": "Run",
-    "Python.smiles_generator.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.catalyst_discovery_gaussian.executor&quot;: &quot;Run&quot;,
+    &quot;Python.generator_main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.smiles_generator.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Refractor__with__RDKit&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Python.generator_main">
     <configuration name="catalyst_discovery_gaussian" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pythonProject" />
@@ -157,7 +158,31 @@
       <option name="project" value="LOCAL" />
       <updated>1740370463571</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Saving another working version, going to rewrite function.">
+      <option name="closed" value="true" />
+      <created>1740374468562</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1740374468562</updated>
+    </task>
+    <task id="LOCAL-00005" summary="A version that actually work using RDKit, successfully generate simple structures.">
+      <option name="closed" value="true" />
+      <created>1740632480769</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1740632480769</updated>
+    </task>
+    <task id="LOCAL-00006" summary="A actual version that can generate a lot of complex structures, but still need refinement that: &#10;1： Simple structures should also be generated&#10;2: Should be allow more possible ring structures, maybe by using combo of wildcards.&#10;3: Remember to control the direction of double bonds.">
+      <option name="closed" value="true" />
+      <created>1740666320419</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1740666320419</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -175,6 +200,9 @@
     <MESSAGE value="Initialization and sort of implementation. Working now but need further improvement." />
     <MESSAGE value="A version that works better, generating acceptable mutations. But still need to fix things like randomly selecting [R]s, add more weights to carbon groups and fix the warning generated when mutating." />
     <MESSAGE value="Saving a working version, in case big modifications and refractors of code might damage the functionality." />
-    <option name="LAST_COMMIT_MESSAGE" value="Saving a working version, in case big modifications and refractors of code might damage the functionality." />
+    <MESSAGE value="Saving another working version, going to rewrite function." />
+    <MESSAGE value="A version that actually work using RDKit, successfully generate simple structures." />
+    <MESSAGE value="A actual version that can generate a lot of complex structures, but still need refinement that: &#10;1： Simple structures should also be generated&#10;2: Should be allow more possible ring structures, maybe by using combo of wildcards.&#10;3: Remember to control the direction of double bonds." />
+    <option name="LAST_COMMIT_MESSAGE" value="A actual version that can generate a lot of complex structures, but still need refinement that: &#10;1： Simple structures should also be generated&#10;2: Should be allow more possible ring structures, maybe by using combo of wildcards.&#10;3: Remember to control the direction of double bonds." />
   </component>
 </project>
