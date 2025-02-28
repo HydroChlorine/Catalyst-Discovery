@@ -22,12 +22,38 @@ class RecursiveSMILESGenerator:
 
         # Optimized fragment set with better termination balance
         self.fragments = [
-            ("C([*])", 0.6),  # Single branch (high probability)
-            ("C", 0.4),  # Termination
-            ("Cl", 0.3), ("O", 0.3),  # Common terminations
-            ("C1CCCC1", 0.2),  # Direct ring template
-            ("N([*])", 0.4),  # Nitrogen branch
-            ("O[*]", 0.4)  # Oxygen branch
+            # Core fragments with weights
+            ("C([*])", 0.5),  # Single branch
+            ("C", 0.3),  # Termination
+            ("Cl", 0.2), ("O", 0.2),  # Halogen/oxygen termination
+
+            # New double bond fragments
+            ("C([*])=C([*])", 0.3),  # Double bond with 2 branches
+            ("C=C[*]", 0.2),  # Terminal double bond
+            ("C(=C[*])[*]", 0.2),  # Branched double bond
+
+            # New triple bond fragments
+            ("C#C[*]", 0.2),  # Terminal triple bond
+            ("C([*])#C([*])", 0.1),  # Internal triple bond
+
+            # Nitrogen branching fragments
+            ("N([*])[*]", 0.4),  # Secondary amine branch
+            ("N([*])([*])", 0.3),  # Tertiary amine branch
+            ("N(=O)[*]", 0.2),  # Nitro group branch
+
+            # High-branching carbon fragments
+            ("C([*])([*])[*]", 0.4),  # Tertiary carbon
+            ("C([*])([*])([*])", 0.2),  # Quaternary carbon
+            ("C1([*])CC([*])CC1", 0.3),  # Cyclohexane with branches
+
+            # Oxygen-containing fragments
+            ("O[*]", 0.4),  # Ether linkage
+            ("OC([*])=O", 0.2),  # Carboxylic acid branch
+            ("O=C([*])[*]", 0.3),  # Ketone branch
+
+            # Sulfur-containing fragments
+            ("S[*]", 0.2),  # Thioether
+            ("S(=O)(=O)[*]", 0.1)  # Sulfonyl group
         ]
 
         self.wildcard = Chem.MolFromSmiles("[*]")
