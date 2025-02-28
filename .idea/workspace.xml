@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="A actual version that can generate a lot of complex structures, but still need refinement that: &#10;1： Simple structures should also be generated&#10;2: Should be allow more possible ring structures, maybe by using combo of wildcards.&#10;3: Remember to control the direction of double bonds.">
+    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="Implemented 2 scripts which can help easier identify generated structures.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generated_smiles.txt" beforeDir="false" afterPath="$PROJECT_DIR$/generated_smiles.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/generated_smiles.txt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/generator_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/generator_main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/output.smi" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/smiles_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/smiles_generator.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -18,7 +19,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="Refractor_with_RDKit" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -32,17 +33,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.catalyst_discovery_gaussian.executor&quot;: &quot;Run&quot;,
-    &quot;Python.generator_main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.smiles_generator.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Refractor__with__RDKit&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.catalyst_discovery_gaussian.executor": "Run",
+    "Python.generator_main.executor": "Run",
+    "Python.smiles_generator.executor": "Run",
+    "Python.smiles_visualizer.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "Implementing__rings",
+    "ignore.virus.scanning.warn.message": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Python.generator_main">
     <configuration name="catalyst_discovery_gaussian" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pythonProject" />
@@ -110,9 +112,32 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="smiles_visualizer" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="pythonProject" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/smiles_visualizer.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Python.generator_main" />
+        <item itemvalue="Python.smiles_visualizer" />
         <item itemvalue="Python.smiles_generator" />
         <item itemvalue="Python.catalyst_discovery_gaussian" />
       </list>
@@ -182,7 +207,23 @@
       <option name="project" value="LOCAL" />
       <updated>1740666320419</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Implemented with more possible atoms, fixed warning message, adding progress bar. Next step is to form rings.">
+      <option name="closed" value="true" />
+      <created>1740696612166</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1740696612166</updated>
+    </task>
+    <task id="LOCAL-00008" summary="Implemented 2 scripts which can help easier identify generated structures.">
+      <option name="closed" value="true" />
+      <created>1740708246165</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1740708246165</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -203,6 +244,8 @@
     <MESSAGE value="Saving another working version, going to rewrite function." />
     <MESSAGE value="A version that actually work using RDKit, successfully generate simple structures." />
     <MESSAGE value="A actual version that can generate a lot of complex structures, but still need refinement that: &#10;1： Simple structures should also be generated&#10;2: Should be allow more possible ring structures, maybe by using combo of wildcards.&#10;3: Remember to control the direction of double bonds." />
-    <option name="LAST_COMMIT_MESSAGE" value="A actual version that can generate a lot of complex structures, but still need refinement that: &#10;1： Simple structures should also be generated&#10;2: Should be allow more possible ring structures, maybe by using combo of wildcards.&#10;3: Remember to control the direction of double bonds." />
+    <MESSAGE value="Implemented with more possible atoms, fixed warning message, adding progress bar. Next step is to form rings." />
+    <MESSAGE value="Implemented 2 scripts which can help easier identify generated structures." />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented 2 scripts which can help easier identify generated structures." />
   </component>
 </project>
