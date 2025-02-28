@@ -4,12 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="Implemented 2 scripts which can help easier identify generated structures.">
+    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="Implementation that actually generate some rings.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/generated_smiles.txt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/generator_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/generator_main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/output.smi" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/generated_structures.smi" beforeDir="false" afterPath="$PROJECT_DIR$/generated_structures.smi" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/smiles_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/smiles_generator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/structures_grid.png" beforeDir="false" afterPath="$PROJECT_DIR$/structures_grid.png" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -223,7 +222,15 @@
       <option name="project" value="LOCAL" />
       <updated>1740708246165</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Implementation that actually generate some rings.">
+      <option name="closed" value="true" />
+      <created>1740718769094</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1740718769094</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -246,6 +253,7 @@
     <MESSAGE value="A actual version that can generate a lot of complex structures, but still need refinement that: &#10;1： Simple structures should also be generated&#10;2: Should be allow more possible ring structures, maybe by using combo of wildcards.&#10;3: Remember to control the direction of double bonds." />
     <MESSAGE value="Implemented with more possible atoms, fixed warning message, adding progress bar. Next step is to form rings." />
     <MESSAGE value="Implemented 2 scripts which can help easier identify generated structures." />
-    <option name="LAST_COMMIT_MESSAGE" value="Implemented 2 scripts which can help easier identify generated structures." />
+    <MESSAGE value="Implementation that actually generate some rings." />
+    <option name="LAST_COMMIT_MESSAGE" value="Implementation that actually generate some rings." />
   </component>
 </project>
