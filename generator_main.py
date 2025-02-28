@@ -6,8 +6,8 @@ import time
 def main():
     generator = RecursiveSMILESGenerator(
         max_depth=100,
-        ring_prob=0.99,
-        min_ring_size=3,
+        ring_prob=0.7,
+        min_ring_size=5,
         max_ring_size=10
     )
 
