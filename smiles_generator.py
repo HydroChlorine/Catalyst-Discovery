@@ -1,5 +1,5 @@
 from rdkit import Chem
-from rdkit.Chem import rdchem, rdmolops
+from rdkit.Chem import rdchem, rdmolops, GetPeriodicTable
 import random
 import time
 from collections import deque
@@ -19,41 +19,57 @@ class RecursiveSMILESGenerator:
         self.ring_prob = ring_prob
         self.min_ring_size = min_ring_size
         self.max_ring_size = max_ring_size
+        self.pt = GetPeriodicTable()
 
-        # Optimized fragment set with better termination balance
+        # Valence-safe fragments (SMILES, weight, max_bonds_dict)
         self.fragments = [
-            # Core fragments with weights
-            ("C([*])", 0.5),  # Single branch
-            ("C", 0.3),  # Termination
-            ("Cl", 0.2), ("O", 0.2),  # Halogen/oxygen termination
+            ("C([*])", 0.6, {}),
+            ("C", 0.4, {}),
+            ("Cl", 0.3, {}),
+            ("O", 0.3, {'O': 1}),
+            ("C([*])=C([*])", 0.3, {'C': 4}),
+            ("C#C[*]", 0.2, {'C': 4}),
+            ("N([*])[*]", 0.4, {'N': 3}),
+            ("N([*])([*])", 0.3, {'N': 3}),
+            ("O[*]", 0.4, {'O': 2}),
+            ("C(=O)(O[*])", 0.3, {'O' : 2}),
+            ("C(=O)[*]", 0.4, {'O': 2, 'C': 4}),
+            ("C1([*])CC([*])CC1", 0.3, {'C': 4}),
+            ("S[*]", 0.2, {'S': 2}),
 
-            # New double bond fragments
-            ("C([*])=C([*])", 0.3),  # Double bond with 2 branches
-            ("C=C[*]", 0.2),  # Terminal double bond
-            ("C(=C[*])[*]", 0.2),  # Branched double bond
+            # Terminal aromatic groups (no wildcards)
+            ("C1=CC=CC=C1", 0.0, {}),  # Benzene terminal
+            ("C1=CC=NC=C1", 0.2, {'N': 3}),  # Pyridine terminal
+            ("C1=CSC=C1", 0.2, {'S': 2}),  # Thiophene terminal
 
-            # New triple bond fragments
-            ("C#C[*]", 0.2),  # Terminal triple bond
-            ("C([*])#C([*])", 0.1),  # Internal triple bond
+            # Revised benzene fragments with explicit bond orders
+            ("C1=C(C=CC(=C1)[*])", 0.5, {}),  # Para substitution
+            ("C1=C(C(=C(C=C1)[*]))", 0.4, {}),  # Meta substitution
+            ("C1=C([*])C=CC=C1", 0.3, {}),  # Ortho substitution
 
-            # Nitrogen branching fragments
-            ("N([*])[*]", 0.4),  # Secondary amine branch
-            ("N([*])([*])", 0.3),  # Tertiary amine branch
-            ("N(=O)[*]", 0.2),  # Nitro group branch
+            # Di-substituted benzene derivatives
+            ("C1=C([*])C(=CC=C1)[*]", 0.3, {}),  # Ortho-di
+            ("C1=C([*])C=CC(=C1)[*]", 0.3, {}),  # Para-di
+            ("C1=CC(=C(C=C1)[*])[*]", 0.3, {}),  # Meta-di
 
-            # High-branching carbon fragments
-            ("C([*])([*])[*]", 0.4),  # Tertiary carbon
-            ("C([*])([*])([*])", 0.2),  # Quaternary carbon
-            ("C1([*])CC([*])CC1", 0.3),  # Cyclohexane with branches
+            # Tri-substituted benzene
+            ("C1=C([*])C(=C([*])C=C1)[*]", 0.2, {}),  # 1,2,3-tri
+            ("C1=C([*])C=CC(=C1[*])[*]", 0.2, {}),  # 1,2,4-tri
 
-            # Oxygen-containing fragments
-            ("O[*]", 0.4),  # Ether linkage
-            ("OC([*])=O", 0.2),  # Carboxylic acid branch
-            ("O=C([*])[*]", 0.3),  # Ketone branch
+            # Fused aromatic systems
+            ("C1=CC=C2C(=C1)C=CC(=C2)[*]", 0.3, {}),  # Naphthalene substitution
+            ("C1=CC=C2C(=C1)C=C([*])C=C2", 0.2, {}),  # Naphthalene different position
 
-            # Sulfur-containing fragments
-            ("S[*]", 0.2),  # Thioether
-            ("S(=O)(=O)[*]", 0.1)  # Sulfonyl group
+            # Heteroaromatic systems
+            ("C1=CC(=NC=C1)[*]", 0.4, {'N': 3}),  # Pyridine (meta)
+            ("C1=C([*])SC=C1", 0.3, {'S': 2}),  # Thiophene
+            ("C1=C([*])OC=C1", 0.3, {'O': 2}),  # Furan
+            ("C1=C([*])N=C(C=C1)[*]", 0.2, {'N': 3}),  # Pyrimidine
+
+            # Polyaromatic hydrocarbons
+            ("C1=CC=C(C=C1)C2=CC=CC=C2[*]", 0.2, {}),  # Biphenyl
+            ("C1=CC=CC(=C1)C2=C(C=CC=C2)[*]", 0.1, {}),  # Stilbene-like
+
         ]
 
         self.wildcard = Chem.MolFromSmiles("[*]")
@@ -62,7 +78,7 @@ class RecursiveSMILESGenerator:
             raise ValueError("Invalid base SMILES string")
 
     def _find_ring_partners(self, mol, start_wildcard):
-        """Efficient BFS with strict cycle prevention"""
+        """Find viable ring partners with BFS and depth control"""
         partners = []
         start_parent = start_wildcard.GetNeighbors()[0]
 
@@ -72,13 +88,11 @@ class RecursiveSMILESGenerator:
         while queue:
             current_atom, depth = queue.popleft()
 
-            # Limit search depth to max_ring_size
             if depth > self.max_ring_size:
                 continue
 
             for neighbor in current_atom.GetNeighbors():
                 if neighbor.GetSymbol() == "*":
-                    # Found potential partner
                     partner_parent = neighbor.GetNeighbors()[0]
                     if (partner_parent.GetIdx() != start_parent.GetIdx() and
                             not mol.GetBondBetweenAtoms(start_parent.GetIdx(), partner_parent.GetIdx())):
@@ -91,66 +105,106 @@ class RecursiveSMILESGenerator:
 
         return random.sample(partners, min(3, len(partners))) if partners else []
 
+    def _validate_valence(self, atom, max_bonds):
+        """Check valence against periodic table and custom limits"""
+        symbol = atom.GetSymbol()
+        default = self.pt.GetDefaultValence(symbol)
+        allowed = max_bonds.get(symbol, default)
+        return atom.GetExplicitValence() <= allowed
+
     def _attempt_ring_formation(self, mol, wildcard):
-        """Fast ring formation with atomic index protection"""
+        """Safe ring formation with valence checks"""
         partners = self._find_ring_partners(mol, wildcard)
         if not partners:
             return None
 
         for partner in partners:
             try:
-                # Work on a copy of the molecule
                 rw_mol = Chem.RWMol(mol)
                 start_parent = wildcard.GetNeighbors()[0]
                 partner_parent = partner.GetNeighbors()[0]
 
-                # Create bond first to preserve indices
-                rw_mol.AddBond(start_parent.GetIdx(), partner_parent.GetIdx(), Chem.BondType.SINGLE)
+                sp_idx = start_parent.GetIdx()
+                pp_idx = partner_parent.GetIdx()
 
-                # Remove wildcards by atom indices
-                rw_mol.RemoveAtom(wildcard.GetIdx())
-                rw_mol.RemoveAtom(partner.GetIdx())
+                if rw_mol.GetBondBetweenAtoms(sp_idx, pp_idx):
+                    continue
 
-                # Validate and return
+                rw_mol.AddBond(sp_idx, pp_idx, Chem.BondType.SINGLE)
+
+                # Validate valence after bond addition
+                if not (self._validate_valence(rw_mol.GetAtomWithIdx(sp_idx), {}) and
+                        self._validate_valence(rw_mol.GetAtomWithIdx(pp_idx), {})):
+                    continue
+
+                # Remove wildcards safely
+                for idx in sorted([wildcard.GetIdx(), partner.GetIdx()], reverse=True):
+                    if idx < rw_mol.GetNumAtoms():
+                        rw_mol.RemoveAtom(idx)
+
                 new_mol = rw_mol.GetMol()
                 Chem.SanitizeMol(new_mol)
                 return new_mol
-            except Exception as e:
+            except:
                 continue
         return None
 
+    def _replace_fragment(self, mol, depth):
+        """Valence-aware fragment replacement"""
+        wildcards = [atom for atom in mol.GetAtoms() if atom.GetSymbol() == "*"]
+        if not wildcards or depth >= self.max_depth:
+            return mol
+
+        target = random.choice(wildcards)
+        parent = target.GetNeighbors()[0]
+
+        valid_frags = []
+        for frag, weight, max_bonds in self.fragments:
+            frag_mol = Chem.MolFromSmiles(frag)
+            if not frag_mol:
+                continue
+
+            connection = frag_mol.GetAtomWithIdx(0)
+            new_valence = parent.GetExplicitValence() + connection.GetExplicitValence()
+
+            if new_valence <= self.pt.GetDefaultValence(parent.GetSymbol()):
+                valid_frags.append((frag, weight))
+
+        if not valid_frags:
+            return mol
+
+        frag = random.choices(
+            [f for f, _ in valid_frags],
+            weights=[w for _, w in valid_frags],
+            k=1
+        )[0]
+
+        return Chem.ReplaceSubstructs(mol, self.wildcard,
+                                      Chem.MolFromSmiles(frag))[0]
+
     def _safe_replace(self, mol):
-        """Iterative replacement with guaranteed termination"""
+        """Iterative replacement engine"""
         current_mol = mol
         depth = 0
         max_attempts = 50
 
         while depth < self.max_depth and max_attempts > 0:
             max_attempts -= 1
-            wildcards = [atom for atom in current_mol.GetAtoms() if atom.GetSymbol() == "*"]
 
-            if not wildcards:
-                break
-
-            # Attempt ring formation first
+            # Attempt ring formation
             if random.random() < self.ring_prob:
-                target = random.choice(wildcards)
-                ring_mol = self._attempt_ring_formation(current_mol, target)
-                if ring_mol:
-                    current_mol = ring_mol
-                    depth += 1
-                    continue
+                wildcards = [a for a in current_mol.GetAtoms() if a.GetSymbol() == "*"]
+                if wildcards:
+                    target = random.choice(wildcards)
+                    ring_mol = self._attempt_ring_formation(current_mol, target)
+                    if ring_mol:
+                        current_mol = ring_mol
+                        depth += 1
+                        continue
 
-            # Regular fragment replacement
-            frag = random.choices(
-                [f for f, _ in self.fragments],
-                weights=[w for _, w in self.fragments],
-                k=1
-            )[0]
-
-            new_mol = Chem.ReplaceSubstructs(current_mol, self.wildcard,
-                                             Chem.MolFromSmiles(frag))[0]
-            if new_mol == current_mol:  # No substitution occurred
+            # Fragment replacement
+            new_mol = self._replace_fragment(current_mol, depth)
+            if new_mol == current_mol:
                 break
 
             current_mol = new_mol
@@ -159,14 +213,13 @@ class RecursiveSMILESGenerator:
         return current_mol
 
     def generate_smiles(self, max_attempts=100):
-        """High-performance generation with attempt tracking"""
+        """Generate single valid SMILES"""
         for _ in range(max_attempts):
             try:
-                # Start with fresh molecule each attempt
                 base_mol = Chem.MolFromSmiles(self.base_smiles)
                 result = self._safe_replace(base_mol)
 
-                # Finalize remaining wildcards
+                # Finalize wildcards
                 result = Chem.ReplaceSubstructs(
                     result,
                     self.wildcard,
@@ -183,7 +236,7 @@ class RecursiveSMILESGenerator:
         return None
 
     def generate_multiple_smiles(self, num_samples, timeout=60):
-        """Reliable batch generation with progress tracking"""
+        """Batch generation with progress tracking"""
         results = set()
         start_time = time.time()
 
