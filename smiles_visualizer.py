@@ -73,10 +73,15 @@ def _generate_pdf(data, filename, cols=5, image_size=(1.5, 1.5),
             c.drawImage(temp_img, x_positions[x_idx], y_idx,
                         width=img_width, height=img_height)
 
+            # Add SMILES string
+            text = f"{smi}"
+            c.setFont("Helvetica", font_size // 2)
+            c.drawString(x_positions[x_idx], y_idx - 0.1 * inch, text)
+
             if add_numbers:
                 text = f"{line_num}"
                 c.setFont("Helvetica", font_size)
-                c.drawString(x_positions[x_idx], y_idx - 0.2 * inch, text)
+                c.drawString(x_positions[x_idx], y_idx - 0.25 * inch, text)
 
             # Update positions
             x_idx += 1
