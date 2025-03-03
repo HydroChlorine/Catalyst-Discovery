@@ -4,33 +4,43 @@ import time
 
 
 def main():
-    generator = RecursiveSMILESGenerator(
-        max_depth=100,
-        ring_prob=0.7,
-        min_ring_size=5,
-        max_ring_size=10
-    )
-
     num_samples = 200
-    timeout = 60  # seconds
+    output_file = "progressive_structures.smi"
 
-    print("🚀 Starting SMILES generation with ring formation...")
-    start_time = time.time()
+    # Progressive depth parameters
+    initial_depth = 2
+    max_final_depth = 15
+    depth_increment_step = 20  # Increase depth every N samples
 
-    smiles_list = []
+    # Initialize generator with base depth
+    generator = RecursiveSMILESGenerator(max_depth=initial_depth)
+
+    results = []
     with tqdm(total=num_samples, desc="Generating") as pbar:
-        while len(smiles_list) < num_samples and (time.time() - start_time) < timeout:
+        while len(results) < num_samples:
+            # Dynamically adjust max_depth based on progress
+            current_count = len(results)
+            current_depth = min(
+                initial_depth + (current_count // depth_increment_step),
+                max_final_depth
+            )
+            generator.max_depth = current_depth
+
+            # Generate and validate
             smiles = generator.generate_smiles()
-            if smiles and smiles not in smiles_list:
-                smiles_list.append(smiles)
+            if smiles and smiles not in results:
+                results.append(smiles)
                 pbar.update(1)
 
-    with open("generated_structures.smi", "w") as f:
-        f.write("\n".join(smiles_list))
+                # Update progress bar description
+                pbar.set_description(f"Generating (Depth {current_depth})")
 
-    print(f"\n🎉 Successfully generated {len(smiles_list)} structures!")
-    print(f"⏱  Total time: {time.time() - start_time:.2f} seconds")
-    print(f"💾 Saved to: generated_structures.smi")
+    # Save results
+    with open("generated_structures.smi", "w") as f:
+        f.write("\n".join(results))
+
+    print(f"Successfully generated {len(results)} structures")
+    print(f"Final complexity depth: {generator.max_depth}")
 
 
 if __name__ == "__main__":
