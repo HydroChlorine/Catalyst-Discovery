@@ -4,8 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="Generated better GUI, temporarily disabled the PNG generation but added PDF generation, need to implement the smiles written in the generated image.">
-      <change beforePath="$PROJECT_DIR$/smiles_visualizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/smiles_visualizer.py" afterDir="false" />
+    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="Implemented the SMILES string added to the image. The whole step is sort of finished, going to submit for feedback.">
+      <change afterPath="$PROJECT_DIR$/pipeline.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/generated_structures.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/generated_structures.pdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/generated_structures.sdf" beforeDir="false" afterPath="$PROJECT_DIR$/generated_structures.sdf" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/generated_structures.smi" beforeDir="false" afterPath="$PROJECT_DIR$/generated_structures.smi" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,42 +33,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.catalyst_discovery_gaussian.executor": "Run",
-    "Python.generator_GUI.executor": "Run",
-    "Python.generator_main.executor": "Run",
-    "Python.smiles_generator.executor": "Run",
-    "Python.smiles_visualizer.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "Implementing__rings",
-    "ignore.virus.scanning.warn.message": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.catalyst_discovery_gaussian.executor&quot;: &quot;Run&quot;,
+    &quot;Python.generator_GUI.executor&quot;: &quot;Run&quot;,
+    &quot;Python.generator_main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.pipeline.executor&quot;: &quot;Run&quot;,
+    &quot;Python.smiles_generator.executor&quot;: &quot;Run&quot;,
+    &quot;Python.smiles_visualizer.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Implementing__rings&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;
   }
-}]]></component>
-  <component name="RunManager" selected="Python.generator_GUI">
-    <configuration name="catalyst_discovery_gaussian" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="pythonProject" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/catalyst_discovery_gaussian.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
+}</component>
+  <component name="RunManager" selected="Python.pipeline">
     <configuration name="generator_GUI" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pythonProject" />
       <option name="ENV_FILES" value="" />
@@ -101,6 +84,28 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/generator_main.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pipeline" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="pythonProject" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -155,11 +160,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.pipeline" />
         <item itemvalue="Python.generator_GUI" />
         <item itemvalue="Python.generator_main" />
         <item itemvalue="Python.smiles_visualizer" />
         <item itemvalue="Python.smiles_generator" />
-        <item itemvalue="Python.catalyst_discovery_gaussian" />
       </list>
     </recent_temporary>
   </component>
@@ -275,7 +280,15 @@
       <option name="project" value="LOCAL" />
       <updated>1740979351560</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Implemented the SMILES string added to the image. The whole step is sort of finished, going to submit for feedback.">
+      <option name="closed" value="true" />
+      <created>1740979620084</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1740979620084</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -302,6 +315,7 @@
     <MESSAGE value="Implement more complex ring generations, now the generator can generate carbon and hetero rings. But things to fix: maybe constrain the rings to eliminate unreasonable rings, adjust weights of fragments and maybe make a GUI." />
     <MESSAGE value="Implement more fragments , mainly aromatic structures to generate with more possibilities and more reasonable structures." />
     <MESSAGE value="Generated better GUI, temporarily disabled the PNG generation but added PDF generation, need to implement the smiles written in the generated image." />
-    <option name="LAST_COMMIT_MESSAGE" value="Generated better GUI, temporarily disabled the PNG generation but added PDF generation, need to implement the smiles written in the generated image." />
+    <MESSAGE value="Implemented the SMILES string added to the image. The whole step is sort of finished, going to submit for feedback." />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented the SMILES string added to the image. The whole step is sort of finished, going to submit for feedback." />
   </component>
 </project>
