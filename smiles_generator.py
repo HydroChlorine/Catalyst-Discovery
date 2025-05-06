@@ -20,7 +20,7 @@ class RecursiveSMILESGenerator:
         self.min_ring_size = min_ring_size
         self.max_ring_size = max_ring_size
         self.pt = GetPeriodicTable()
-
+        self.target_ranges = [(),(),(),(),(),()]
         # Valence-safe fragments (SMILES, weight, max_bonds_dict)
         self.fragments = [
             ("C([*])", 0.6, {}),

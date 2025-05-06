@@ -39,9 +39,21 @@ class CatalystDatabase:
         """Retrieve training data: features (X) and target values (y)"""
         cursor = self.conn.execute("""
         SELECT mol_weight, e1, e2, e3, e4, e5, e6
-        FROM catalysts WHERE e1 IS NOT NULL
+        FROM catalysts 
+        WHERE e1 IS NOT NULL
+          AND e2 IS NOT NULL
+          AND e3 IS NOT NULL
+          AND e4 IS NOT NULL
+          AND e5 IS NOT NULL
+          AND e6 IS NOT NULL
         """)
         data = cursor.fetchall()
-        X = [row[:1] for row in data]  # Feature: molecular weight
-        y = [row[1:] for row in data]  # Targets: 6 energy values
-        return X, y
+        return [row[:1] for row in data], [row[1:] for row in data]
+
+    def exists(self, smiles):
+        """Check if SMILES exists in database"""
+        cursor = self.conn.execute(
+            "SELECT EXISTS(SELECT 1 FROM catalysts WHERE smiles=?)",
+            (smiles,)
+        )
+        return bool(cursor.fetchone()[0])

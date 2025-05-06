@@ -4,16 +4,29 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="Implemented a simple pipeline and initialize new database and reinforcement part.">
-      <change afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/model_trainer.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/rl_generator.py" afterDir="false" />
+    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="Implementation of the learning model, still need to feed some parameters in but the overall structure of the model is finished.">
+      <change afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/add_dummy_data.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/database_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/delete_database_entry.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/main_gui.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/view_database.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/database.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/database.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/model_trainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/model_trainer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/rl_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/rl_generator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/smiles_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/smiles_generator.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
@@ -32,22 +45,26 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.catalyst_discovery_gaussian.executor&quot;: &quot;Run&quot;,
-    &quot;Python.generator_GUI.executor&quot;: &quot;Run&quot;,
-    &quot;Python.generator_main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.pipeline.executor&quot;: &quot;Run&quot;,
-    &quot;Python.smiles_generator.executor&quot;: &quot;Run&quot;,
-    &quot;Python.smiles_visualizer.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;data-base-and-learning&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.catalyst_discovery_gaussian.executor": "Run",
+    "Python.database_manager.executor": "Run",
+    "Python.delete_database_entry.executor": "Run",
+    "Python.generator_GUI.executor": "Run",
+    "Python.generator_main.executor": "Run",
+    "Python.main_gui.executor": "Run",
+    "Python.pipeline.executor": "Run",
+    "Python.smiles_generator.executor": "Run",
+    "Python.smiles_visualizer.executor": "Run",
+    "Python.view_database.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "data-base-and-learning",
+    "ignore.virus.scanning.warn.message": "true"
   }
-}</component>
-  <component name="RunManager" selected="Python.pipeline">
-    <configuration name="generator_GUI" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+}]]></component>
+  <component name="RunManager" selected="Python.database_manager">
+    <configuration name="database_manager" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pythonProject" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -56,11 +73,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/generator_GUI.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning/database_manager.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -69,7 +86,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="generator_main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="delete_database_entry" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pythonProject" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -78,11 +95,33 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/generator_main.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning/delete_database_entry.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="main_gui" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="pythonProject" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning/main_gui.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -113,7 +152,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="smiles_generator" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="view_database" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pythonProject" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -122,33 +161,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/smiles_generator.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration name="smiles_visualizer" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="pythonProject" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/smiles_visualizer.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning/view_database.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -159,11 +176,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.database_manager" />
+        <item itemvalue="Python.main_gui" />
+        <item itemvalue="Python.view_database" />
+        <item itemvalue="Python.delete_database_entry" />
         <item itemvalue="Python.pipeline" />
-        <item itemvalue="Python.generator_GUI" />
-        <item itemvalue="Python.generator_main" />
-        <item itemvalue="Python.smiles_visualizer" />
-        <item itemvalue="Python.smiles_generator" />
       </list>
     </recent_temporary>
   </component>
@@ -295,7 +312,15 @@
       <option name="project" value="LOCAL" />
       <updated>1743957241950</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="Implementation of the learning model, still need to feed some parameters in but the overall structure of the model is finished.">
+      <option name="closed" value="true" />
+      <created>1745503866185</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1745503866185</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -324,6 +349,7 @@
     <MESSAGE value="Generated better GUI, temporarily disabled the PNG generation but added PDF generation, need to implement the smiles written in the generated image." />
     <MESSAGE value="Implemented the SMILES string added to the image. The whole step is sort of finished, going to submit for feedback." />
     <MESSAGE value="Implemented a simple pipeline and initialize new database and reinforcement part." />
-    <option name="LAST_COMMIT_MESSAGE" value="Implemented a simple pipeline and initialize new database and reinforcement part." />
+    <MESSAGE value="Implementation of the learning model, still need to feed some parameters in but the overall structure of the model is finished." />
+    <option name="LAST_COMMIT_MESSAGE" value="Implementation of the learning model, still need to feed some parameters in but the overall structure of the model is finished." />
   </component>
 </project>

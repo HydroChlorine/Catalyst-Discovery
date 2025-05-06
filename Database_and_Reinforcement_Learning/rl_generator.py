@@ -1,20 +1,16 @@
 from smiles_generator import RecursiveSMILESGenerator
-from .database import CatalystDatabase
+from database import CatalystDatabase
 import numpy as np
 
 
 class RLGenerator(RecursiveSMILESGenerator):
     """Reinforcement learning optimized structure generator"""
 
-    def __init__(self, db, model, **kwargs):
+    def __init__(self, db, model,target_ranges, **kwargs):
         super().__init__(**kwargs)
         self.db = db  # Database instance
         self.model = model  # Trained prediction model
-        self.target_ranges = [  # Example target energy ranges
-            (-10.5, -9.5),  # e1 range
-            (-5.2, -4.8),  # e2 range
-            # ... other 4 energy ranges
-        ]
+        self.target_ranges = target_ranges
 
     def generate_optimized(self, n=10):
         """Generate optimized candidate structures"""
