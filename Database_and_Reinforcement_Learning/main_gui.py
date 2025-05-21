@@ -59,27 +59,23 @@ class CatalystApp:
         self.base_smiles.insert(0, r"[*]/[N+](N[*])=C\C1=CC=CC=C1")
 
         # Target Ranges
-        ttk.Label(config_frame, text="Target Energy Ranges:").grid(row=1, column=0, sticky="w")
-        self.target_ranges = []
-        for i in range(6):
-            ttk.Label(config_frame, text=f"E{i + 1}:").grid(row=2 + i, column=0, sticky="e")
-            low_entry = ttk.Entry(config_frame, width=8)
-            high_entry = ttk.Entry(config_frame, width=8)
-            low_entry.grid(row=2 + i, column=1, padx=2)
-            high_entry.grid(row=2 + i, column=2, padx=2)
-            self.target_ranges.append((low_entry, high_entry))
-
-        # Initialize default ranges
-        default_ranges = [(-10.5, -9.5), (-5.2, -4.8), (2.1, 2.5),
-                          (-3.0, -2.5), (1.8, 2.2), (-0.5, 0.5)]
-        for entry, (low, high) in zip(self.target_ranges, default_ranges):
-            entry[0].insert(0, str(low))
-            entry[1].insert(0, str(high))
+        ttk.Label(config_frame, text="Max Allowed Difference:").grid(row=1, column=0, sticky="w")
+        self.max_diff_entry = ttk.Entry(config_frame, width=8)
+        self.max_diff_entry.grid(row=1, column=1, sticky="w")
+        self.max_diff_entry.insert(0, "0.04")
 
         # ===== Candidate Frame Content =====
-        self.candidate_tree = ttk.Treeview(candidate_frame, columns=("SMILES", "Status"), show="headings")
+        self.candidate_tree = ttk.Treeview(candidate_frame,
+                                           columns=("SMILES", "Status", "ΔE21", "ΔE54"),
+                                           show="headings")
         self.candidate_tree.heading("SMILES", text="SMILES")
         self.candidate_tree.heading("Status", text="Status")
+        self.candidate_tree.heading("ΔE21", text="E2-E1")
+        self.candidate_tree.heading("ΔE54", text="E5-E4")
+        self.candidate_tree.column("SMILES", width=200)
+        self.candidate_tree.column("Status", width=80)
+        self.candidate_tree.column("ΔE21", width=80, anchor='center')
+        self.candidate_tree.column("ΔE54", width=80, anchor='center')
         self.candidate_tree.pack(fill=tk.BOTH, expand=True)
 
         input_frame = ttk.Frame(candidate_frame)
@@ -140,36 +136,42 @@ class CatalystApp:
         return hasattr(self.predictor.model, "estimators_")  # MultiOutputRegressor attribute
 
     def generate_candidates(self):
-        """Generate new candidate structures"""
         try:
-            # Initialize generator with current parameters
-            target_ranges = [
-                (float(low.get()), float(high.get()))
-                for low, high in self.target_ranges
-            ]
+            # Get max difference from GUI
+            max_diff = float(self.max_diff_entry.get())
 
+            # Initialize generator with parameters
             self.generator = RLGenerator(
                 db=self.db,
                 model=self.predictor,
+                max_diff=max_diff,  # Pass the parameter
                 base_smiles=self.base_smiles.get(),
-                target_ranges=target_ranges,
-                max_depth = 15,
-                ring_prob = 0.3
+                max_depth=15,
+                ring_prob=0.3
             )
 
-            # Generate and display candidates
+            # Get candidates with predictions and differences
             self.current_candidates = self.generator.generate_optimized(n=5)
             self.update_candidate_list()
+
+            if not self.current_candidates:
+                messagebox.showinfo("Info",
+                                    "No candidates met the criteria. Try increasing max difference.")
 
         except Exception as e:
             messagebox.showerror("Error", f"Generation failed:\n{str(e)}")
 
     def update_candidate_list(self):
-        """Refresh candidate display"""
+        """Refresh candidate display with energy differences"""
         self.candidate_tree.delete(*self.candidate_tree.get_children())
-        for smi in self.current_candidates:
+        for smi, preds, diffs in self.current_candidates:  # Modified unpacking
             status = "New" if not self.db.exists(smi) else "Calculated"
-            self.candidate_tree.insert("", tk.END, values=(smi, status))
+            self.candidate_tree.insert('', tk.END, values=(
+                smi,
+                status,
+                f"{diffs[0]:.3f}",
+                f"{diffs[1]:.3f}"
+            ))
 
     def submit_energies(self):
         """Submit energy values for selected candidate"""
@@ -192,13 +194,7 @@ class CatalystApp:
                 raise ValueError("Invalid SMILES structure")
 
             # Save to database
-            is_valid = all(
-                low <= e <= high
-                for e, (low, high) in zip(energies, [
-                    (float(low.get()), float(high.get()))
-                    for low, high in self.target_ranges
-                ])
-            )
+            is_valid = True
 
             self.db.add_entry(smi, energies=energies, is_valid=is_valid)
             self.update_candidate_list()
