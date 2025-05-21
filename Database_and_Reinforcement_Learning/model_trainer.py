@@ -18,11 +18,10 @@ class EnergyPredictor:
         self.model.fit(X, y)
 
     def predict(self, smiles_list):
-        """Predict energy values for SMILES list"""
         if not hasattr(self.model, "estimators_"):
             raise RuntimeError("Model not trained! Generate data and train first.")
         X = self._extract_features(smiles_list)
-        return self.model.predict(X)
+        return self.model.predict(X).tolist()  # Convert to Python list for easier handling
 
     def _extract_features(self, smiles_list):
         """Extract features from SMILES strings"""

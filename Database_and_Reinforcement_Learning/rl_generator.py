@@ -4,37 +4,45 @@ import numpy as np
 
 
 class RLGenerator(RecursiveSMILESGenerator):
-    """Reinforcement learning optimized structure generator"""
-
-    def __init__(self, db, model,target_ranges, **kwargs):
+    def __init__(self, db, model, max_diff=0.04, **kwargs):  # Add max_diff parameter
         super().__init__(**kwargs)
-        self.db = db  # Database instance
-        self.model = model  # Trained prediction model
-        self.target_ranges = target_ranges
+        self.db = db
+        self.model = model
+        self.max_diff = max_diff  # Use parameter instead of hardcoded value
 
     def generate_optimized(self, n=10):
-        """Generate optimized candidate structures"""
         candidates = []
-        for _ in range(n * 2):  # Generate double for filtering
+        for _ in range(n * 2):
             smi = self.generate_smiles()
             if smi and not self.db.exists(smi):
                 candidates.append(smi)
 
-        # Predict energies and filter
-        predictions = self.model.predict(candidates)
-        scored = [(smi, preds) for smi, preds in zip(candidates, predictions)
-                  if self._is_predicted_valid(preds)]
+        if not candidates:
+            return []
 
-        return [smi for smi, _ in sorted(scored, key=lambda x: self._score(x[1]))[:n]]
+        # Get predictions and calculate differences
+        try:
+            predictions = self.model.predict(candidates)
+            diffs = self._calculate_differences(predictions)
+        except Exception as e:
+            raise RuntimeError(f"Prediction failed: {str(e)}")
 
-    def _is_predicted_valid(self, energies):
-        """Check if predicted energies fall within target ranges"""
-        return all(low <= e <= high for e, (low, high)
-                   in zip(energies, self.target_ranges))
+        # Filter and score based on new criteria
+        valid = []
+        for i, (smi, preds) in enumerate(zip(candidates, predictions)):
+            current_diff = diffs[i]
+            if self._is_valid(current_diff):
+                valid.append((smi, preds, current_diff))
 
-    def _score(self, energies):
-        """Calculate energy match score (lower is better)"""
-        return sum(
-            abs(e - (high + low) / 2) for e, (low, high)  # Distance from target midpoint
-            in zip(energies, self.target_ranges)
-        )
+        # Sort by combined score
+        sorted_candidates = sorted(valid, key=lambda x: self._score(x[2]))
+        return sorted_candidates[:n]
+
+    def _calculate_differences(self, predictions):
+        return [(p[1] - p[0], p[4] - p[3]) for p in predictions]
+
+    def _is_valid(self, diff_pair):
+        return all(abs(d) <= self.max_diff for d in diff_pair)
+
+    def _score(self, diff_pair):
+        return sum(abs(d) for d in diff_pair)
