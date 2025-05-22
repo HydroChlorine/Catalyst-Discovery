@@ -9,7 +9,8 @@ from tqdm import tqdm
 class RecursiveSMILESGenerator:
     def __init__(self,
                  base_smiles=r"[*]/[N+](N[*])=C\C1=CC=CC=C1",
-                 max_depth=4,
+                 max_depth=4, # The more depth the generations is, possibly the larger and more complex the
+                 # generation will be.
                  ring_prob=0.3,
                  min_ring_size=5,
                  max_ring_size=6):
