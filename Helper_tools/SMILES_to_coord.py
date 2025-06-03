@@ -229,16 +229,53 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
     new_pos = np.array(conf.GetAtomPosition(idx_alkene_C2_combined)) + vec_to_C_iminium * (1 - scale)
     conf.SetAtomPosition(idx_alkene_C2_combined, Point3D(*new_pos))
 
-    # 9. Generate Gaussian input
+    # 9. Generate Gaussian input with connectivity section
     atom_lines = []
     for i, atom in enumerate(ts_mol.GetAtoms()):
         pos = conf.GetAtomPosition(i)
         atom_lines.append(f"{atom.GetSymbol():2s} {pos.x:12.6f} {pos.y:12.6f} {pos.z:12.6f}")
 
+    # Use a set to track which bonds have been added
+    added_bonds = set()
+    connectivity_lines = []
+    atom_bonds = [[] for _ in range(ts_mol.GetNumAtoms())]
+
+    # Only consider bonds within each molecule
+    # Bonds in hydrazine
+    for bond in hydrazine_mol.GetBonds():
+        atom1_idx = bond.GetBeginAtomIdx()
+        atom2_idx = bond.GetEndAtomIdx()
+        bond_order = int(bond.GetBondTypeAsDouble())
+        bond_key = tuple(sorted([atom1_idx, atom2_idx]))
+        min_idx = min(atom1_idx, atom2_idx)
+        max_idx = max(atom1_idx, atom2_idx)
+        if bond_key not in added_bonds:
+            atom_bonds[min_idx].append(f"{max_idx + 1} {bond_order}.0")
+            added_bonds.add(bond_key)
+
+    # Bonds in decene
+    for bond in decene_mol.GetBonds():
+        atom1_idx = bond.GetBeginAtomIdx() + n_hydrazine
+        atom2_idx = bond.GetEndAtomIdx() + n_hydrazine
+        bond_order = int(bond.GetBondTypeAsDouble())
+        bond_key = tuple(sorted([atom1_idx, atom2_idx]))
+        min_idx = min(atom1_idx, atom2_idx)
+        max_idx = max(atom1_idx, atom2_idx)
+        if bond_key not in added_bonds:
+            atom_bonds[min_idx].append(f"{max_idx + 1} {bond_order}.0")
+            added_bonds.add(bond_key)
+
+    # Create connectivity lines
+    for i in range(ts_mol.GetNumAtoms()):
+        line = f"{i + 1}"
+        if atom_bonds[i]:
+            line += " " + " ".join(atom_bonds[i])
+        connectivity_lines.append(line)
+
     # Route section for TS optimization
     route = (
         f"# opt=(ts,calcfc,noeigen) freq=noraman {method}/{basis} "
-        "int=grid=ultrafine temperature=298"
+        "geom=connectivity int=grid=ultrafine temperature=298"
     )
 
     input_content = f"""%mem={mem}
@@ -249,14 +286,13 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
 {smiles} + dec-5-ene TS calculation
 
 {charge} {mult}
-""" + "\n".join(atom_lines) + "\n\n"
+""" + "\n".join(atom_lines) + "\n\n" + "\n".join(connectivity_lines) + "\n\n"
 
     # 10. Write to file
     with open(output_file, "w") as f:
         f.write(input_content)
 
     return output_file
-
 
 if __name__ == "__main__":
     # Your example SMILES that previously failed
