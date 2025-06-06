@@ -5,6 +5,7 @@ from rdkit.Geometry import Point3D
 import os
 import argparse
 import numpy as np
+import math
 
 
 def smiles_to_gaussian_com(smiles, output_file="gibbs_calc.com", charge=0, mult=1,
@@ -62,17 +63,7 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
                     mem="30GB", nproc=16, method="m062x", basis="6-31g(d)"):
     """
     Generate Gaussian input for transition state of hydrazine derivative + dec-5-ene [3+2] cycloaddition
-    with specific hydrazine core: R¹-N⁺(R²)-N(R³)=C(H)-Ph
-
-    Args:
-        smiles (str): SMILES of hydrazine derivative
-        output_file (str): Output .com filename
-        charge (int): Molecular charge (default +1 for hydrazinium)
-        mult (int): Spin multiplicity
-        mem (str): Memory allocation
-        nproc (int): Number of processors
-        method (str): DFT method
-        basis (str): Basis set
+    with proper hydrogen removal from terminal nitrogen
     """
 
     # 1. Load and validate hydrazine derivative
@@ -86,20 +77,17 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
     AllChem.MMFFOptimizeMolecule(hydrazine_mol)
 
     # 2. Identify key atoms in hydrazine core
-    # Find the positively charged nitrogen (N⁺)
     n_plus_candidates = [atom for atom in hydrazine_mol.GetAtoms()
                          if atom.GetSymbol() == "N" and atom.GetFormalCharge() == 1]
 
     if not n_plus_candidates:
         raise ValueError("No positively charged nitrogen found in molecule")
 
-    # Select the candidate with a double bond to carbon and single bond to nitrogen
     n_plus = None
     terminal_n = None
     iminium_c = None
 
     for candidate in n_plus_candidates:
-        # Check neighbors
         neighbors = candidate.GetNeighbors()
         n_nbrs = 0
         c_nbrs = 0
@@ -123,10 +111,8 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
     # 3. Verify terminal nitrogen has at least one hydrogen
     terminal_n_hs = [nbr for nbr in terminal_n.GetNeighbors()
                      if nbr.GetSymbol() == "H"]
-    if not terminal_n_hs:
-        # Check for implicit hydrogens
-        if terminal_n.GetTotalNumHs() < 1:
-            raise ValueError("Terminal nitrogen must have at least one hydrogen")
+    if not terminal_n_hs and terminal_n.GetTotalNumHs() < 1:
+        raise ValueError("Terminal nitrogen must have at least one hydrogen")
 
     # 4. Verify iminium carbon is attached to benzene
     benzene_ring = False
@@ -134,6 +120,16 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
         if nbr.GetSymbol() == "C" and nbr.GetIsAromatic():
             benzene_ring = True
             break
+
+    if not benzene_ring:
+        for nbr in iminium_c.GetNeighbors():
+            if nbr.GetSymbol() == "C":
+                for nbr2 in nbr.GetNeighbors():
+                    if nbr2.GetIsAromatic():
+                        benzene_ring = True
+                        break
+                if benzene_ring:
+                    break
 
     if not benzene_ring:
         raise ValueError("Iminium carbon must be attached to a benzene ring")
@@ -157,110 +153,128 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
     idx_alkene_C1 = double_bond.GetBeginAtomIdx()
     idx_alkene_C2 = double_bond.GetEndAtomIdx()
 
-    # 6. Create supermolecule (reactant complex)
+    # 6. Create product molecule with hydrogen removal
+    # Combine molecules
     combined = Chem.CombineMols(hydrazine_mol, decene_mol)
-    rw_combined = Chem.RWMol(combined)
+    product_mol = Chem.RWMol(combined)
 
-    # 7. Align molecules for reaction
-    hydrazine_conf = hydrazine_mol.GetConformer()
-    decene_conf = decene_mol.GetConformer()
-
-    # Get positions of key atoms
-    pos_N_term = np.array(hydrazine_conf.GetAtomPosition(idx_N_term))
-    pos_C_iminium = np.array(hydrazine_conf.GetAtomPosition(idx_C_iminium))
-    pos_alkene_C1 = np.array(decene_conf.GetAtomPosition(idx_alkene_C1))
-    pos_alkene_C2 = np.array(decene_conf.GetAtomPosition(idx_alkene_C2))
-
-    # Calculate centroid of reactive atoms
-    hydrazine_centroid = (pos_N_term + pos_C_iminium) / 2
-    alkene_centroid = (pos_alkene_C1 + pos_alkene_C2) / 2
-
-    # Calculate translation vector
-    translation = hydrazine_centroid - alkene_centroid + np.array([3.0, 0.0, 0.0])
-
-    # Create new conformer for combined system
-    combined_conf = Chem.Conformer(combined.GetNumAtoms())
-
-    # Copy hydrazine coordinates
-    for i in range(hydrazine_mol.GetNumAtoms()):
-        pos = hydrazine_conf.GetAtomPosition(i)
-        combined_conf.SetAtomPosition(i, pos)
-
-    # Copy and translate decene coordinates
+    # Get atom indices
     n_hydrazine = hydrazine_mol.GetNumAtoms()
-    for i in range(decene_mol.GetNumAtoms()):
-        j = i + n_hydrazine
-        pos = decene_conf.GetAtomPosition(i)
-        new_pos = Point3D(pos.x + translation[0],
-                                 pos.y + translation[1],
-                                 pos.z + translation[2])
-        combined_conf.SetAtomPosition(j, new_pos)
 
-    combined.AddConformer(combined_conf)
+    #Remove one hydrogen from terminal nitrogen
+    terminal_n_atom = product_mol.GetAtomWithIdx(idx_N_term)
+    h_to_remove = None
+    for nbr in terminal_n_atom.GetNeighbors():
+        if nbr.GetSymbol() == "H":
+            h_to_remove = nbr
+            break
 
-    # 8. Generate TS guess by forming partial bonds
+    if h_to_remove:
+        product_mol.RemoveAtom(h_to_remove.GetIdx())
+        # Update indices if we remove an atom before the alkene carbons
+        if h_to_remove.GetIdx() < n_hydrazine:
+            n_hydrazine -= 1
+            if idx_alkene_C1 >= n_hydrazine:
+                idx_alkene_C1 -= 1
+            if idx_alkene_C2 >= n_hydrazine:
+                idx_alkene_C2 -= 1
+
+    # Add new bonds for cycloaddition
+    product_mol.AddBond(idx_N_term, idx_alkene_C1 + n_hydrazine, BondType.SINGLE)
+    product_mol.AddBond(idx_C_iminium, idx_alkene_C2 + n_hydrazine, BondType.SINGLE)
+
+    # Modify existing bonds to match product state:
+    # 1. Break the double bond in hydrazine (N+=C) -> make it single
+    bond_to_break = hydrazine_mol.GetBondBetweenAtoms(idx_N_plus, idx_C_iminium)
+    if bond_to_break and bond_to_break.GetBondType() == BondType.DOUBLE:
+        product_mol.RemoveBond(idx_N_plus, idx_C_iminium)
+        product_mol.AddBond(idx_N_plus, idx_C_iminium, BondType.SINGLE)
+
+    # 2. Break the double bond in decene -> make it single
+    bond_to_break = decene_mol.GetBondBetweenAtoms(idx_alkene_C1, idx_alkene_C2)
+    if bond_to_break and bond_to_break.GetBondType() == BondType.DOUBLE:
+        product_mol.RemoveBond(idx_alkene_C1 + n_hydrazine, idx_alkene_C2 + n_hydrazine)
+        product_mol.AddBond(idx_alkene_C1 + n_hydrazine, idx_alkene_C2 + n_hydrazine, BondType.SINGLE)
+
+    # Generate 3D structure for product
+    product_mol = product_mol.GetMol()
+    AllChem.EmbedMolecule(product_mol, randomSeed=0xf00d)
+    AllChem.MMFFOptimizeMolecule(product_mol)
+
+    product_mol.RemoveBond()
+
+    # 7. Create TS by elongating forming bonds and restoring original double bonds
+    ts_mol = Chem.RWMol(product_mol)
+    conf = ts_mol.GetConformer()
+
+    # Get atom indices in product
     idx_N_term_combined = idx_N_term
     idx_C_iminium_combined = idx_C_iminium
     idx_alkene_C1_combined = idx_alkene_C1 + n_hydrazine
     idx_alkene_C2_combined = idx_alkene_C2 + n_hydrazine
 
-    # Add partial bonds
-    rw_combined.AddBond(idx_N_term_combined, idx_alkene_C1_combined, BondType.SINGLE)
-    rw_combined.AddBond(idx_C_iminium_combined, idx_alkene_C2_combined, BondType.SINGLE)
+    # Calculate current bond vectors
+    pos_N = np.array(conf.GetAtomPosition(idx_N_term_combined))
+    pos_C_iminium = np.array(conf.GetAtomPosition(idx_C_iminium_combined))
+    pos_C1 = np.array(conf.GetAtomPosition(idx_alkene_C1_combined))
+    pos_C2 = np.array(conf.GetAtomPosition(idx_alkene_C2_combined))
 
-    # Set bond lengths for TS guess
-    ts_mol = rw_combined.GetMol()
-    conf = ts_mol.GetConformer()
-    target_distance = 2.0  # Angstrom
+    vec_N_C1 = pos_C1 - pos_N
+    vec_C_C2 = pos_C2 - pos_C_iminium
 
-    # Move alkene C1 closer to terminal N
-    vec_to_N_term = np.array(conf.GetAtomPosition(idx_N_term_combined)) - np.array(
-        conf.GetAtomPosition(idx_alkene_C1_combined))
-    current_distance = np.linalg.norm(vec_to_N_term)
-    scale = target_distance / current_distance
-    new_pos = np.array(conf.GetAtomPosition(idx_alkene_C1_combined)) + vec_to_N_term * (1 - scale)
-    conf.SetAtomPosition(idx_alkene_C1_combined, Point3D(*new_pos))
+    # Elongate bonds to TS distance (2.2 Å)
+    ts_distance = 2.2  # Optimal TS bond length
 
-    # Move alkene C2 closer to iminium C
-    vec_to_C_iminium = np.array(conf.GetAtomPosition(idx_C_iminium_combined)) - np.array(
-        conf.GetAtomPosition(idx_alkene_C2_combined))
-    current_distance = np.linalg.norm(vec_to_C_iminium)
-    scale = target_distance / current_distance
-    new_pos = np.array(conf.GetAtomPosition(idx_alkene_C2_combined)) + vec_to_C_iminium * (1 - scale)
-    conf.SetAtomPosition(idx_alkene_C2_combined, Point3D(*new_pos))
+    if np.linalg.norm(vec_N_C1) > 1e-6:
+        new_vec_N_C1 = vec_N_C1 * (ts_distance / np.linalg.norm(vec_N_C1))
+        new_pos_C1 = pos_N + new_vec_N_C1
+        conf.SetAtomPosition(idx_alkene_C1_combined, Point3D(*new_pos_C1))
 
-    # 9. Generate Gaussian input with connectivity section
+    if np.linalg.norm(vec_C_C2) > 1e-6:
+        new_vec_C_C2 = vec_C_C2 * (ts_distance / np.linalg.norm(vec_C_C2))
+        new_pos_C2 = pos_C_iminium + new_vec_C_C2
+        conf.SetAtomPosition(idx_alkene_C2_combined, Point3D(*new_pos_C2))
+
+    # 8. Restore original double bonds in the TS structure
+    # For hydrazine: change N+-C bond back to double
+    bond = ts_mol.GetBondBetweenAtoms(idx_N_plus, idx_C_iminium)
+    if bond:
+        ts_mol.RemoveBond(idx_N_plus, idx_C_iminium)
+        ts_mol.AddBond(idx_N_plus, idx_C_iminium, BondType.DOUBLE)
+
+    # For decene: change C=C bond back to double
+    bond = ts_mol.GetBondBetweenAtoms(idx_alkene_C1_combined, idx_alkene_C2_combined)
+    if bond:
+        ts_mol.RemoveBond(idx_alkene_C1_combined, idx_alkene_C2_combined)
+        ts_mol.AddBond(idx_alkene_C1_combined, idx_alkene_C2_combined, BondType.DOUBLE)
+
+    # 9. Kekulize molecules for proper bond orders
+    Chem.Kekulize(ts_mol)
+
+    # 10. Generate Gaussian input with connectivity section
     atom_lines = []
     for i, atom in enumerate(ts_mol.GetAtoms()):
         pos = conf.GetAtomPosition(i)
         atom_lines.append(f"{atom.GetSymbol():2s} {pos.x:12.6f} {pos.y:12.6f} {pos.z:12.6f}")
 
-    # Use a set to track which bonds have been added
+    # Generate connectivity section without duplicates
     added_bonds = set()
     connectivity_lines = []
     atom_bonds = [[] for _ in range(ts_mol.GetNumAtoms())]
 
-    # Only consider bonds within each molecule
-    # Bonds in hydrazine
-    for bond in hydrazine_mol.GetBonds():
+    # Iterate through all bonds
+    for bond in ts_mol.GetBonds():
         atom1_idx = bond.GetBeginAtomIdx()
         atom2_idx = bond.GetEndAtomIdx()
         bond_order = int(bond.GetBondTypeAsDouble())
-        bond_key = tuple(sorted([atom1_idx, atom2_idx]))
-        min_idx = min(atom1_idx, atom2_idx)
-        max_idx = max(atom1_idx, atom2_idx)
-        if bond_key not in added_bonds:
-            atom_bonds[min_idx].append(f"{max_idx + 1} {bond_order}.0")
-            added_bonds.add(bond_key)
 
-    # Bonds in decene
-    for bond in decene_mol.GetBonds():
-        atom1_idx = bond.GetBeginAtomIdx() + n_hydrazine
-        atom2_idx = bond.GetEndAtomIdx() + n_hydrazine
-        bond_order = int(bond.GetBondTypeAsDouble())
+        # Create canonical representation
         bond_key = tuple(sorted([atom1_idx, atom2_idx]))
+
+        # Add bond to lower-indexed atom
         min_idx = min(atom1_idx, atom2_idx)
         max_idx = max(atom1_idx, atom2_idx)
+
         if bond_key not in added_bonds:
             atom_bonds[min_idx].append(f"{max_idx + 1} {bond_order}.0")
             added_bonds.add(bond_key)
@@ -288,7 +302,7 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
 {charge} {mult}
 """ + "\n".join(atom_lines) + "\n\n" + "\n".join(connectivity_lines) + "\n\n"
 
-    # 10. Write to file
+    # 11. Write to file
     with open(output_file, "w") as f:
         f.write(input_content)
 
