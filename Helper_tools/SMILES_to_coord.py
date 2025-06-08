@@ -201,7 +201,6 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
     AllChem.EmbedMolecule(product_mol, randomSeed=0xf00d)
     AllChem.MMFFOptimizeMolecule(product_mol)
 
-    product_mol.RemoveBond()
 
     # 7. Create TS by elongating forming bonds and restoring original double bonds
     ts_mol = Chem.RWMol(product_mol)
@@ -235,6 +234,10 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
         new_pos_C2 = pos_C_iminium + new_vec_C_C2
         conf.SetAtomPosition(idx_alkene_C2_combined, Point3D(*new_pos_C2))
 
+    # Break the two new bonds
+    ts_mol.RemoveBond(idx_N_term, idx_alkene_C1 + n_hydrazine)
+    ts_mol.RemoveBond(idx_C_iminium, idx_alkene_C2 + n_hydrazine)
+
     # 8. Restore original double bonds in the TS structure
     # For hydrazine: change N+-C bond back to double
     bond = ts_mol.GetBondBetweenAtoms(idx_N_plus, idx_C_iminium)
@@ -248,7 +251,53 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
         ts_mol.RemoveBond(idx_alkene_C1_combined, idx_alkene_C2_combined)
         ts_mol.AddBond(idx_alkene_C1_combined, idx_alkene_C2_combined, BondType.DOUBLE)
 
-    # 9. Kekulize molecules for proper bond orders
+    # Create new hydrogen atom
+    new_h = Chem.Atom('H')
+    h_idx = ts_mol.AddAtom(new_h)
+    ts_mol.AddBond(idx_N_term, h_idx, BondType.SINGLE)
+
+    # Remove all existing conformers (they have wrong atom count)
+    ts_mol.RemoveAllConformers()
+
+    # Create new conformer with correct atom count
+    new_conf = Chem.Conformer(ts_mol.GetNumAtoms())
+
+    # Copy coordinates from product_mol
+    old_conf = product_mol.GetConformer()
+    for i in range(product_mol.GetNumAtoms()):
+        pos = old_conf.GetAtomPosition(i)
+        new_conf.SetAtomPosition(i, pos)
+
+    # Set initial position for new H (near terminal nitrogen)
+    pos_N = old_conf.GetAtomPosition(idx_N_term)
+    new_conf.SetAtomPosition(h_idx, Point3D(pos_N.x, pos_N.y, pos_N.z + 1.0))
+
+    # Add the new conformer to ts_mol
+    conf_id = ts_mol.AddConformer(new_conf)
+    conf = ts_mol.GetConformer(conf_id)  # Use this conformer for everything
+
+    # Update property cache to avoid valence errors
+    ts_mol.UpdatePropertyCache(strict=False)
+
+    # 9. Optimize hydrogen position using RDKit's local optimization
+    try:
+        mp = AllChem.MMFFGetMoleculeProperties(ts_mol)
+        if mp:
+            ff = AllChem.MMFFGetMoleculeForceField(
+                ts_mol, mp, confId=conf_id, ignoreInterfragInteractions=True
+            )
+            if ff:
+                # Freeze all atoms except the new hydrogen
+                for i in range(ts_mol.GetNumAtoms()):
+                    if i != h_idx:
+                        ff.AddFixedPoint(i)
+                ff.Minimize(maxIts=200)
+    except:
+        pass
+
+    # 10. Calculate ring information before Kekulization
+    ts_mol.UpdatePropertyCache(strict=False)
+    Chem.GetSSSR(ts_mol)  # This initializes ring information
     Chem.Kekulize(ts_mol)
 
     # 10. Generate Gaussian input with connectivity section
