@@ -252,11 +252,13 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
         ts_mol.AddBond(idx_alkene_C1_combined, idx_alkene_C2_combined, BondType.DOUBLE)
 
     # Create new hydrogen atom
+    #print('a')
+    # Create new hydrogen atom
     new_h = Chem.Atom('H')
     h_idx = ts_mol.AddAtom(new_h)
     ts_mol.AddBond(idx_N_term, h_idx, BondType.SINGLE)
 
-    # Remove all existing conformers (they have wrong atom count)
+    # Remove all existing conformers
     ts_mol.RemoveAllConformers()
 
     # Create new conformer with correct atom count
@@ -268,15 +270,53 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
         pos = old_conf.GetAtomPosition(i)
         new_conf.SetAtomPosition(i, pos)
 
-    # Set initial position for new H (near terminal nitrogen)
-    pos_N = old_conf.GetAtomPosition(idx_N_term)
-    new_conf.SetAtomPosition(h_idx, Point3D(pos_N.x, pos_N.y, pos_N.z + 1.0))
+    # Get terminal nitrogen position
+    pos_N = new_conf.GetAtomPosition(idx_N_term)
+    pos_N = np.array([pos_N.x, pos_N.y, pos_N.z])
+
+    # Get positions of bonded atoms (N+ and existing H)
+    neighbors = []
+    terminal_n_atom = ts_mol.GetAtomWithIdx(idx_N_term)
+    for nbr in terminal_n_atom.GetNeighbors():
+        if nbr.GetIdx() == h_idx:  # Skip the new hydrogen we're adding
+            continue
+        pos = new_conf.GetAtomPosition(nbr.GetIdx())
+        neighbors.append(np.array([pos.x, pos.y, pos.z]))
+
+    # Calculate vectors from nitrogen to bonded atoms
+    vectors = [v - pos_N for v in neighbors]
+
+    # Calculate tetrahedral position for new hydrogen
+    if len(vectors) == 2:
+        # Normalize vectors
+        v1 = vectors[0] / np.linalg.norm(vectors[0])
+        v2 = vectors[1] / np.linalg.norm(vectors[1])
+
+        # Calculate bisector and perpendicular
+        bisector = (v1 + v2) / np.linalg.norm(v1 + v2)
+        perpendicular = np.cross(v1, v2)
+        if np.linalg.norm(perpendicular) < 1e-4:
+            # Fallback if vectors are colinear
+            perpendicular = np.array([1.0, 0.0, 0.0])
+        else:
+            perpendicular = perpendicular / np.linalg.norm(perpendicular)
+
+        # Calculate new hydrogen direction (tetrahedral position)
+        new_h_dir = -bisector - perpendicular
+        new_h_dir = new_h_dir / np.linalg.norm(new_h_dir)
+    else:
+        # Fallback position if unexpected number of neighbors
+        new_h_dir = np.array([1.0, 0.0, 0.0])
+
+    # Set new hydrogen position (1.0 Å from nitrogen)
+    new_h_pos = pos_N + new_h_dir * 1.0
+    new_conf.SetAtomPosition(h_idx, Point3D(*new_h_pos))
 
     # Add the new conformer to ts_mol
     conf_id = ts_mol.AddConformer(new_conf)
-    conf = ts_mol.GetConformer(conf_id)  # Use this conformer for everything
+    conf = ts_mol.GetConformer(conf_id)
 
-    # Update property cache to avoid valence errors
+    # Update property cache
     ts_mol.UpdatePropertyCache(strict=False)
 
     # 9. Optimize hydrogen position using RDKit's local optimization
