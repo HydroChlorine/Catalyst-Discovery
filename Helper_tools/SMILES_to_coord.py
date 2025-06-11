@@ -8,7 +8,7 @@ import numpy as np
 import math
 
 
-def smiles_to_gaussian_com(smiles, output_file="gibbs_calc.com", charge=0, mult=1,
+def smiles_to_gaussian_com_e1(smiles, output_file="gibbs_calc.com", charge=0, mult=1,
                            mem="30GB", nproc=16, method="m062x", basis="6-31g(d)"):
     """
     Convert a SMILES string to a Gaussian .com file for Gibbs free energy calculation
@@ -59,7 +59,7 @@ def smiles_to_gaussian_com(smiles, output_file="gibbs_calc.com", charge=0, mult=
     return output_file
 
 
-def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
+def generate_cycloaddition_ts_com_e2(smiles, output_file="ts_calc.com", charge=1, mult=1,
                     mem="30GB", nproc=16, method="m062x", basis="6-31g(d)"):
     """
     Generate Gaussian input for transition state of hydrazine derivative + dec-5-ene [3+2] cycloaddition
@@ -252,8 +252,6 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
         ts_mol.AddBond(idx_alkene_C1_combined, idx_alkene_C2_combined, BondType.DOUBLE)
 
     # Create new hydrogen atom
-    #print('a')
-    # Create new hydrogen atom
     new_h = Chem.Atom('H')
     h_idx = ts_mol.AddAtom(new_h)
     ts_mol.AddBond(idx_N_term, h_idx, BondType.SINGLE)
@@ -340,7 +338,74 @@ def generate_ts_com(smiles, output_file="ts_calc.com", charge=1, mult=1,
     Chem.GetSSSR(ts_mol)  # This initializes ring information
     Chem.Kekulize(ts_mol)
 
-    # 10. Generate Gaussian input with connectivity section
+    # 11. Adjust decene position perpendicular to hydrazine plane
+    conf = ts_mol.GetConformer()
+
+    # Get positions of key hydrazine atoms
+    pos_N_plus = np.array(conf.GetAtomPosition(idx_N_plus))
+    pos_N_term = np.array(conf.GetAtomPosition(idx_N_term))
+    pos_C_iminium = np.array(conf.GetAtomPosition(idx_C_iminium))
+
+    # Calculate plane vectors
+    vec1 = pos_N_term - pos_N_plus
+    vec2 = pos_C_iminium - pos_N_plus
+
+    # Compute normal vector to the plane
+    normal = np.cross(vec1, vec2)
+    if np.linalg.norm(normal) < 1e-4:
+        normal = np.array([0.0, 0.0, 1.0])  # Fallback if colinear
+    else:
+        normal = normal / np.linalg.norm(normal)
+
+    # Calculate centroid of hydrazine plane
+    centroid = (pos_N_plus + pos_N_term + pos_C_iminium) / 3.0
+
+    # Find a benzene atom to determine direction
+    benzene_atom_idx = None
+    for nbr in ts_mol.GetAtomWithIdx(idx_C_iminium).GetNeighbors():
+        if nbr.GetSymbol() == "C" and nbr.GetIsAromatic():
+            benzene_atom_idx = nbr.GetIdx()
+            break
+
+    # Determine direction away from benzene
+    if benzene_atom_idx is not None:
+        pos_benzene = np.array(conf.GetAtomPosition(benzene_atom_idx))
+        benzene_vec = pos_benzene - centroid
+        direction = np.sign(np.dot(normal, benzene_vec)) * normal
+    else:
+        direction = normal  # Fallback
+
+    # Calculate displacement distance (2.0 Å)
+    displacement = direction * 2.0
+
+    # Apply displacement to all decene atoms
+    for i in range(n_hydrazine, ts_mol.GetNumAtoms() - 1):  # Exclude the new H atom
+        pos = np.array(conf.GetAtomPosition(i))
+        new_pos = pos + displacement
+        conf.SetAtomPosition(i, Point3D(*new_pos))
+
+    # Recalculate positions after displacement
+    pos_N = np.array(conf.GetAtomPosition(idx_N_term))
+    pos_C_iminium = np.array(conf.GetAtomPosition(idx_C_iminium))
+    pos_C1 = np.array(conf.GetAtomPosition(idx_alkene_C1_combined))
+    pos_C2 = np.array(conf.GetAtomPosition(idx_alkene_C2_combined))
+
+    # Adjust forming bond distances to 2.2 Å
+    ts_distance = 2.2
+
+    vec_N_C1 = pos_C1 - pos_N
+    if np.linalg.norm(vec_N_C1) > 1e-6:
+        new_vec_N_C1 = vec_N_C1 * (ts_distance / np.linalg.norm(vec_N_C1))
+        new_pos_C1 = pos_N + new_vec_N_C1
+        conf.SetAtomPosition(idx_alkene_C1_combined, Point3D(*new_pos_C1))
+
+    vec_C_C2 = pos_C2 - pos_C_iminium
+    if np.linalg.norm(vec_C_C2) > 1e-6:
+        new_vec_C_C2 = vec_C_C2 * (ts_distance / np.linalg.norm(vec_C_C2))
+        new_pos_C2 = pos_C_iminium + new_vec_C_C2
+        conf.SetAtomPosition(idx_alkene_C2_combined, Point3D(*new_pos_C2))
+
+    # 12. Generate Gaussian input with connectivity section
     atom_lines = []
     for i, atom in enumerate(ts_mol.GetAtoms()):
         pos = conf.GetAtomPosition(i)
@@ -401,7 +466,7 @@ if __name__ == "__main__":
     # Your example SMILES that previously failed
     example_smiles = "C[N+](N)=CC1=CC=CC=C1"
     try:
-        output_file = generate_ts_com(example_smiles, "ts_calculation.com")
+        output_file = generate_cycloaddition_ts_com_e2(example_smiles, "ts_calculation.com")
         print(f"Successfully created: {output_file}")
     except Exception as e:
         print(f"Error: {str(e)}")
