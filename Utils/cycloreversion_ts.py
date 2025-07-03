@@ -466,8 +466,6 @@ def generate_cycloreversion_ts_e5(smiles, output_file="ts_cycloreversion_e5.com"
         new_vec = vec_C1_C2 * (ts_distance / np.linalg.norm(vec_C1_C2))
         conf.SetAtomPosition(idx_alkene_C2_combined, Point3D(*(pos_C1 + new_vec)))
 
-    # TODO Correct the new direction and identification of the new ene atoms
-
     # 15. Separate fragments
     vec1 = pos_C1 - pos_N_term
     vec2 = pos_N_plus - pos_N_term
