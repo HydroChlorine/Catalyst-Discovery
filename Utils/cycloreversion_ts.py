@@ -248,8 +248,7 @@ def generate_proton_transfer_product_e4(smiles, output_file="proton_transfer_pro
 %chk={os.path.splitext(output_file)[0]}.chk
 {route}
 
-{smiles} + dec-5-ene proton-transferred product
-Gibbs free energy calculation
+{smiles} + dec-5-ene proton-transferred product - Gibbs free energy calculation
 
 {charge} {mult}
 """ + "\n".join(atom_lines) + "\n\n" + "\n".join(connectivity_lines) + "\n\n"
@@ -262,7 +261,7 @@ Gibbs free energy calculation
 
 
 def generate_cycloreversion_ts_e5(smiles, output_file="ts_cycloreversion_e5.com", charge=1, mult=1,
-                                  mem="30GB", nproc=16, method="m062x", basis="6-31g(d)"):
+                                  mem="180GB", nproc=40, method="m062x", basis="6-31g(d)"):
     """
     Generate Gaussian input for cycloreversion TS (E5 step) of hydrazine derivative + dec-5-ene
     """
@@ -546,8 +545,8 @@ def generate_cycloreversion_ts_e5(smiles, output_file="ts_cycloreversion_e5.com"
 
     # Route section for TS optimization
     route = (
-        f"# opt=(ts,calcfc,noeigen) freq=noraman {method}/{basis} "
-        "geom=connectivity int=grid=ultrafine temperature=298"
+        f"# opt=(calcfc,ts,gediis,noeigentest) freq=noraman {basis}\n"
+        f"geom=connectivity int=grid=ultrafine {method} temperature=298"
     )
 
     input_content = f"""%mem={mem}
@@ -556,7 +555,6 @@ def generate_cycloreversion_ts_e5(smiles, output_file="ts_cycloreversion_e5.com"
 {route}
 
 {smiles} + dec-5-ene cycloreversion TS (E5)
-Charge: {charge}, Mult: {mult}
 
 {charge} {mult}
 """ + "\n".join(atom_lines) + "\n\n" + "\n".join(connectivity_lines) + "\n\n"

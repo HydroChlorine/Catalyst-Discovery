@@ -83,7 +83,7 @@ empiricaldispersion=gd3 int=grid=ultrafine {method} sp
 
 
 def generate_cycloaddition_ts_com_e2(smiles, output_file="ts_calc_e2.com", charge=1, mult=1,
-                    mem="30GB", nproc=16, method="m062x", basis="6-31g(d)"):
+                    mem="180GB", nproc=40, method="m062x", basis="6-31g(d)"):
     """
     Generate Gaussian input for transition state of hydrazine derivative + dec-5-ene [3+2] cycloaddition
     with proper hydrogen removal from terminal nitrogen
@@ -456,8 +456,8 @@ def generate_cycloaddition_ts_com_e2(smiles, output_file="ts_calc_e2.com", charg
 
     # Route section for TS optimization
     route = (
-        f"# opt=(ts,calcfc,noeigen) freq=noraman {method}/{basis} "
-        "geom=connectivity int=grid=ultrafine temperature=298"
+        f"# opt=(calcfc,ts,gediis,noeigentest) freq=noraman {basis}\n"
+        f"geom=connectivity int=grid=ultrafine {method} temperature=298"
     )
 
     input_content = f"""%mem={mem}

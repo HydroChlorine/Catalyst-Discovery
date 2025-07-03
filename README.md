@@ -16,11 +16,12 @@ An integrated workflow for AI-assisted catalyst discovery combining:
 - **Dual GUIs**: Separate interfaces for discovery workflow and database management
 - **Energy Prediction**: Multi-output regression model for catalyst properties
 - **Loose Coupling**: Any component can be easily replaced if a better algorithm is employed
+- **Easy Scrips**: In Utils, there are scripts to generate input files automatically with some optimization
 
 ## Workflow Overview
 ```mermaid
 graph TD
-    A[Generate Initial Candidates] --> B[Calculate energies of chosen candidates on cluster, submit it back to database]
+    A[Generate Initial Candidates] --> B[Generate Gaussian files, calculate energies of chosen candidates on cluster, submit it back to database]
     B --> C{Train/Update Model}
     C --> D[Generate Optimized Candidates]
     D -->|Loop| B
@@ -29,7 +30,7 @@ graph TD
 ## How to use it and QA
 GUIs have been provided to use the predictor. Run `main_gui.py` and follow the steps to use it. But here are some possibles questions and their solutions:
  - Why I see error messages about no training data and generation failed the first time I run the program?<br>
-   Solution: The database needs to be initialized manually if there's no entry in it. Run `add_dummy_data.py` to intialize the database, this dummy data can be deleted later by running `database_manager.py`
+   Solution: The database needs to be initialized manually if there's no entry in it. Run `add_dummy_data.py` to initialize the database, this dummy data can be deleted later by running `database_manager.py`
    
  - Why no structure is generated when I click the `Generate Candidates` button? <br>
    Solution: Maybe the Max-allowed difference boundary you set is too strict, and based on the current database, the computer doesn't think any structure can have energies within the given boundary.
@@ -41,3 +42,5 @@ GUIs have been provided to use the predictor. Run `main_gui.py` and follow the s
 
  - What's the unit for the energy input? <br>
    Answer: There's no strict restriction on the unit of the input as long as it's consistent. It's suggested to manually convert units to kcal/mol or kJ/mol
+
+Last revised: 07/03/2025

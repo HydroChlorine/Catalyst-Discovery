@@ -193,8 +193,7 @@ def generate_cycloaddition_product_e3(smiles, output_file="intermediate_e3.com",
 %chk={os.path.splitext(output_file)[0]}.chk
 {route}
 
-{smiles} + dec-5-ene cycloaddition product
-Gibbs free energy calculation
+{smiles} + dec-5-ene cycloaddition product - Gibbs free energy calculation
 
 {charge} {mult}
 """ + "\n".join(atom_lines) + "\n\n" + "\n".join(connectivity_lines) + "\n\n"
