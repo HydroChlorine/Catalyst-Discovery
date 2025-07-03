@@ -4,7 +4,7 @@ from rdkit.Chem.rdchem import BondType
 from Utils.find_all_reachable_neighbors import find_all_reachable_neighbors
 import os
 
-def generate_final_product(smiles, output_file = "final_product_e6.com", charge = 1, mult = 1,
+def generate_final_product_e6(smiles, output_file = "final_product_e6.com", charge = 1, mult = 1,
                            mem = "180GB", nproc = 40, method = "m062x", basis = "6-311+g(2d,p)"):
     """
     Generate gaussian input file with coordinates and connectivity for the final product (new hydrazine)
@@ -223,8 +223,7 @@ def generate_final_product(smiles, output_file = "final_product_e6.com", charge 
 %chk={os.path.splitext(output_file)[0]}.chk
 {route}
 
-{smiles} final product
-Gibbs free energy calculation
+{smiles} final product - Gibbs free energy calculation
 
 {charge} {mult}
 """ + "\n".join(atom_lines) + "\n\n" + "\n".join(connectivity_lines) + "\n\n"
@@ -239,7 +238,7 @@ if __name__ == "__main__":
 
     example_smiles = "C[N+](N)=CC1=CC=CC=C1"
     try:
-        output_file = generate_final_product(example_smiles)
+        output_file = generate_final_product_e6(example_smiles)
         print(f"Successfully created: {output_file}")
     except Exception as e:
         print(f"Error {str(e)}")
