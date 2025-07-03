@@ -4,11 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="All implementation of the learning model with a database manager to make it easier to manage the database.&#10;Note that if the database is empty, run the add_dummy_data.py to initialize the database and then delete it later.">
+    <list default="true" id="bd7648c6-d6c7-4757-aca1-20ba4f0b0a03" name="Changes" comment="First implementation of the generating intermediate and second TS. &#10;TODO: Correct the direction in generating the TS.">
+      <change afterPath="$PROJECT_DIR$/Helper_tools/final_product.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Helper_tools/find_all_reachable_neighbors.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/main_gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/main_gui.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/model_trainer.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/model_trainer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/rl_generator.py" beforeDir="false" afterPath="$PROJECT_DIR$/Database_and_Reinforcement_Learning/rl_generator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Helper_tools/H_transfer_intermediate.py" beforeDir="false" afterPath="$PROJECT_DIR$/Helper_tools/H_transfer_intermediate.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Helper_tools/SMILES_to_coord.py" beforeDir="false" afterPath="$PROJECT_DIR$/Helper_tools/Starting_Material_and_First_TS.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Helper_tools/cycloreversion_ts.py" beforeDir="false" afterPath="$PROJECT_DIR$/Helper_tools/cycloreversion_ts.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,10 +27,16 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="Implementing_rings" />
+        <entry key="$PROJECT_DIR$" value="main" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8
@@ -39,26 +47,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.catalyst_discovery_gaussian.executor&quot;: &quot;Run&quot;,
-    &quot;Python.database_manager.executor&quot;: &quot;Run&quot;,
-    &quot;Python.delete_database_entry.executor&quot;: &quot;Run&quot;,
-    &quot;Python.generator_GUI.executor&quot;: &quot;Run&quot;,
-    &quot;Python.generator_main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main_gui.executor&quot;: &quot;Run&quot;,
-    &quot;Python.pipeline.executor&quot;: &quot;Run&quot;,
-    &quot;Python.smiles_generator.executor&quot;: &quot;Run&quot;,
-    &quot;Python.smiles_visualizer.executor&quot;: &quot;Run&quot;,
-    &quot;Python.view_database.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;data-base-and-learning&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.H_transfer_and_cycloreversion.executor": "Run",
+    "Python.H_transfer_intermediate (1).executor": "Run",
+    "Python.SMILES_to_coord.executor": "Run",
+    "Python.Starting_Material_and_First_TS.executor": "Run",
+    "Python.catalyst_discovery_gaussian.executor": "Run",
+    "Python.cycloreversion_ts.executor": "Run",
+    "Python.database_manager.executor": "Run",
+    "Python.delete_database_entry.executor": "Run",
+    "Python.final_product.executor": "Run",
+    "Python.generator_GUI.executor": "Run",
+    "Python.generator_main.executor": "Run",
+    "Python.main_gui.executor": "Run",
+    "Python.pipeline.executor": "Run",
+    "Python.smiles_generator.executor": "Run",
+    "Python.smiles_visualizer.executor": "Run",
+    "Python.view_database.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "Helper__tools",
+    "ignore.virus.scanning.warn.message": "true",
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
   }
-}</component>
-  <component name="RunManager" selected="Python.database_manager">
-    <configuration name="database_manager" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+}]]></component>
+  <component name="RunManager" selected="Python.final_product">
+    <configuration name="H_transfer_intermediate (1)" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pythonProject" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -67,11 +82,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Helper_tools" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning/database_manager.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Helper_tools/H_transfer_intermediate.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -80,7 +95,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="delete_database_entry" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="H_transfer_intermediate" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pythonProject" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -89,11 +104,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Helper_tools" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning/delete_database_entry.py" />
+      <option name="SCRIPT_NAME" value="D:\Catalysis\pythonProject\Helper_tools\H_transfer_intermediate.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -102,7 +117,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="main_gui" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="Starting_Material_and_First_TS" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pythonProject" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -111,11 +126,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Helper_tools" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning/main_gui.py" />
+      <option name="SCRIPT_NAME" value="D:\Catalysis\pythonProject\Helper_tools\Starting_Material_and_First_TS.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -124,7 +139,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="pipeline" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="cycloreversion_ts" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pythonProject" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -133,11 +148,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Helper_tools" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pipeline.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Helper_tools/cycloreversion_ts.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -146,7 +161,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="view_database" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="final_product" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="pythonProject" />
       <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -155,11 +170,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Helper_tools" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Database_and_Reinforcement_Learning/view_database.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Helper_tools/final_product.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -170,11 +185,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.database_manager" />
-        <item itemvalue="Python.main_gui" />
-        <item itemvalue="Python.view_database" />
-        <item itemvalue="Python.delete_database_entry" />
-        <item itemvalue="Python.pipeline" />
+        <item itemvalue="Python.final_product" />
+        <item itemvalue="Python.cycloreversion_ts" />
+        <item itemvalue="Python.H_transfer_intermediate (1)" />
+        <item itemvalue="Python.Starting_Material_and_First_TS" />
+        <item itemvalue="Python.H_transfer_intermediate" />
       </list>
     </recent_temporary>
   </component>
@@ -322,7 +337,71 @@
       <option name="project" value="LOCAL" />
       <updated>1746497104869</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="First implementation of a converter that converts a SMILES string to the .com files which calculate the initial energy E1 and the cycloaddition TS energy E2.">
+      <option name="closed" value="true" />
+      <created>1748954625216</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1748954625216</updated>
+    </task>
+    <task id="LOCAL-00018" summary="Added the connectivity part in the TS E2 calculation">
+      <option name="closed" value="true" />
+      <created>1748970521476</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1748970521476</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Optimize the TS generation, only need to delete 2 forming bonds in future implementation.">
+      <option name="closed" value="true" />
+      <created>1749187288210</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1749187288210</updated>
+    </task>
+    <task id="LOCAL-00020" summary="Reoptimize the H coordinate.">
+      <option name="closed" value="true" />
+      <created>1749399334224</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1749399334224</updated>
+    </task>
+    <task id="LOCAL-00021" summary="Reoptimize the H coordinate.">
+      <option name="closed" value="true" />
+      <created>1749399407405</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1749399407405</updated>
+    </task>
+    <task id="LOCAL-00022" summary="Correctly optimize the coordinates of the terminal H.">
+      <option name="closed" value="true" />
+      <created>1749446078286</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1749446078286</updated>
+    </task>
+    <task id="LOCAL-00023" summary="Finished the optimizaition of the first transition state.">
+      <option name="closed" value="true" />
+      <created>1749615672494</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1749615672494</updated>
+    </task>
+    <task id="LOCAL-00024" summary="First implementation of the generating intermediate and second TS. &#10;TODO: Correct the direction in generating the TS.">
+      <option name="closed" value="true" />
+      <created>1750325500893</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1750325500893</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -353,6 +432,13 @@
     <MESSAGE value="Implemented a simple pipeline and initialize new database and reinforcement part." />
     <MESSAGE value="Implementation of the learning model, still need to feed some parameters in but the overall structure of the model is finished." />
     <MESSAGE value="All implementation of the learning model with a database manager to make it easier to manage the database.&#10;Note that if the database is empty, run the add_dummy_data.py to initialize the database and then delete it later." />
-    <option name="LAST_COMMIT_MESSAGE" value="All implementation of the learning model with a database manager to make it easier to manage the database.&#10;Note that if the database is empty, run the add_dummy_data.py to initialize the database and then delete it later." />
+    <MESSAGE value="First implementation of a converter that converts a SMILES string to the .com files which calculate the initial energy E1 and the cycloaddition TS energy E2." />
+    <MESSAGE value="Added the connectivity part in the TS E2 calculation" />
+    <MESSAGE value="Optimize the TS generation, only need to delete 2 forming bonds in future implementation." />
+    <MESSAGE value="Reoptimize the H coordinate." />
+    <MESSAGE value="Correctly optimize the coordinates of the terminal H." />
+    <MESSAGE value="Finished the optimizaition of the first transition state." />
+    <MESSAGE value="First implementation of the generating intermediate and second TS. &#10;TODO: Correct the direction in generating the TS." />
+    <option name="LAST_COMMIT_MESSAGE" value="First implementation of the generating intermediate and second TS. &#10;TODO: Correct the direction in generating the TS." />
   </component>
 </project>
