@@ -1,15 +1,10 @@
 from rdkit import Chem
-from rdkit.Chem import AllChem, rdchem, rdmolops
+from rdkit.Chem import AllChem
 from rdkit.Chem.rdchem import BondType
-from rdkit.Geometry import Point3D
 import os
-import argparse
-import numpy as np
-import math
-
 
 def generate_cycloaddition_product_e3(smiles, output_file="intermediate_e3.com", charge=1, mult=1,
-                                 mem="30GB", nproc=16, method="m062x", basis="6-31g(d)"):
+                                 mem="180GB", nproc=40, method="m062x", basis="6-311+g(2d,p)"):
     """
     Generate Gaussian input for cycloaddition product of hydrazine derivative + dec-5-ene
 
@@ -168,7 +163,7 @@ def generate_cycloaddition_product_e3(smiles, output_file="intermediate_e3.com",
     for bond in product_mol.GetBonds():
         atom1_idx = bond.GetBeginAtomIdx()
         atom2_idx = bond.GetEndAtomIdx()
-        bond_order = int(bond.GetBondTypeAsDouble())
+        bond_order = bond.GetBondTypeAsDouble()
 
         # Create canonical representation
         bond_key = tuple(sorted([atom1_idx, atom2_idx]))
@@ -178,7 +173,7 @@ def generate_cycloaddition_product_e3(smiles, output_file="intermediate_e3.com",
         max_idx = max(atom1_idx, atom2_idx)
 
         if bond_key not in added_bonds:
-            atom_bonds[min_idx].append(f"{max_idx + 1} {bond_order}.0")
+            atom_bonds[min_idx].append(f"{max_idx + 1} {bond_order}")
             added_bonds.add(bond_key)
 
     for i in range(product_mol.GetNumAtoms()):
@@ -189,8 +184,8 @@ def generate_cycloaddition_product_e3(smiles, output_file="intermediate_e3.com",
 
     # Route section for product optimization
     route = (
-        f"# opt {method}/{basis} freq=noraman "
-        "int=grid=ultrafine temperature=298"
+        f"# {basis} scrf=(solvent=Dichloromethane,CPCM) geom=connectivity\n"
+        f"empiricaldispersion=gd3 int=grid=ultrafine {method} sp"
     )
 
     input_content = f"""%mem={mem}
@@ -215,7 +210,7 @@ if __name__ == "__main__":
     # Your example SMILES that previously failed
     example_smiles = "C[N+](N)=CC1=CC=CC=C1"
     try:
-        output_file = generate_cycloaddition_product_e3(example_smiles, "intermediate_calculation.com")
+        output_file = generate_cycloaddition_product_e3(example_smiles)
         print(f"Successfully created: {output_file}")
     except Exception as e:
         print(f"Error: {str(e)}")

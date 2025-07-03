@@ -1,15 +1,12 @@
 from rdkit import Chem
-from rdkit.Chem import AllChem, rdchem, rdmolops
+from rdkit.Chem import AllChem
 from rdkit.Chem.rdchem import BondType
 from rdkit.Geometry import Point3D
 import os
-import argparse
 import numpy as np
-import math
 
-
-def smiles_to_gaussian_com_e1(smiles, output_file="gibbs_calc.com", charge=0, mult=1,
-                           mem="30GB", nproc=16, method="m062x", basis="6-31g(d)"):
+def smiles_to_gaussian_com_e1(smiles, output_file="starting_material_e1.com", charge=1, mult=1,
+                           mem="180GB", nproc=40, method="m062x", basis="6-311+g(2d,p)"):
     """
     Convert a SMILES string to a Gaussian .com file for Gibbs free energy calculation
 
@@ -41,16 +38,42 @@ def smiles_to_gaussian_com_e1(smiles, output_file="gibbs_calc.com", charge=0, mu
         pos = conf.GetAtomPosition(i)
         coordinates.append(f"{atom.GetSymbol()} {pos.x:12.6f} {pos.y:12.6f} {pos.z:12.6f}")
 
+    # Get connectivity session
+    added_bond = set()
+    connectivity_lines = []
+    atom_bonds = [[] for _ in range(mol.GetNumAtoms())]
+
+    for bond in mol.GetBonds():
+        atom1_idx = bond.GetBeginAtomIdx()
+        atom2_idx = bond.GetEndAtomIdx()
+        bond_order = bond.GetBondTypeAsDouble()
+
+        bond_key = tuple(sorted([atom1_idx, atom2_idx]))
+
+        min_idx = min(atom1_idx, atom2_idx)
+        max_idx = max(atom1_idx, atom2_idx)
+
+        if bond_key not in added_bond:
+            added_bond.add(bond_key)
+            atom_bonds[min_idx].append(f"{max_idx + 1} {bond_order}")
+
+    for i in range(mol.GetNumAtoms()):
+        line = f"{i+1}"
+        if atom_bonds[i]:
+            line += " " + " ".join(atom_bonds[i])
+        connectivity_lines.append(line)
+
     # Generate Gaussian input content
     content = f"""%mem={mem}
 %nprocshared={nproc}
 %chk={os.path.splitext(output_file)[0]}.chk
-# {method}/{basis} freq=noraman int=grid=ultrafine temperature=298
+# {basis} scrf=(solcent=Dichloromethane,CPCM) geom=connectivity
+empiricaldispersion=gd3 int=grid=ultrafine {method} sp
 
 {smiles} - Gibbs Free Energy Calculation
 
 {charge} {mult}
-""" + "\n".join(coordinates) + "\n\n"
+""" + "\n".join(coordinates) + "\n\n" + "\n".join(connectivity_lines) + "\n\n"
 
     # Write to file
     with open(output_file, "w") as f:
@@ -59,7 +82,7 @@ def smiles_to_gaussian_com_e1(smiles, output_file="gibbs_calc.com", charge=0, mu
     return output_file
 
 
-def generate_cycloaddition_ts_com_e2(smiles, output_file="ts_calc.com", charge=1, mult=1,
+def generate_cycloaddition_ts_com_e2(smiles, output_file="ts_calc_e2.com", charge=1, mult=1,
                     mem="30GB", nproc=16, method="m062x", basis="6-31g(d)"):
     """
     Generate Gaussian input for transition state of hydrazine derivative + dec-5-ene [3+2] cycloaddition
@@ -121,15 +144,6 @@ def generate_cycloaddition_ts_com_e2(smiles, output_file="ts_calc.com", charge=1
             benzene_ring = True
             break
 
-    if not benzene_ring:
-        for nbr in iminium_c.GetNeighbors():
-            if nbr.GetSymbol() == "C":
-                for nbr2 in nbr.GetNeighbors():
-                    if nbr2.GetIsAromatic():
-                        benzene_ring = True
-                        break
-                if benzene_ring:
-                    break
 
     if not benzene_ring:
         raise ValueError("Iminium carbon must be attached to a benzene ring")
@@ -420,7 +434,7 @@ def generate_cycloaddition_ts_com_e2(smiles, output_file="ts_calc.com", charge=1
     for bond in ts_mol.GetBonds():
         atom1_idx = bond.GetBeginAtomIdx()
         atom2_idx = bond.GetEndAtomIdx()
-        bond_order = int(bond.GetBondTypeAsDouble())
+        bond_order = bond.GetBondTypeAsDouble()
 
         # Create canonical representation
         bond_key = tuple(sorted([atom1_idx, atom2_idx]))
@@ -430,7 +444,7 @@ def generate_cycloaddition_ts_com_e2(smiles, output_file="ts_calc.com", charge=1
         max_idx = max(atom1_idx, atom2_idx)
 
         if bond_key not in added_bonds:
-            atom_bonds[min_idx].append(f"{max_idx + 1} {bond_order}.0")
+            atom_bonds[min_idx].append(f"{max_idx + 1} {bond_order}")
             added_bonds.add(bond_key)
 
     # Create connectivity lines
@@ -466,7 +480,7 @@ if __name__ == "__main__":
     # Your example SMILES that previously failed
     example_smiles = "C[N+](N)=CC1=CC=CC=C1"
     try:
-        output_file = generate_cycloaddition_ts_com_e2(example_smiles, "ts_calculation.com")
+        output_file = generate_cycloaddition_ts_com_e2(example_smiles)
         print(f"Successfully created: {output_file}")
     except Exception as e:
         print(f"Error: {str(e)}")

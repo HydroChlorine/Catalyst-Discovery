@@ -1,14 +1,14 @@
 from rdkit import Chem
-from rdkit.Chem import AllChem, rdchem, rdmolops
+from rdkit.Chem import AllChem
 from rdkit.Chem.rdchem import BondType
 from rdkit.Geometry import Point3D
 import os
-import argparse
 import numpy as np
-import math
+from Utils.find_all_reachable_neighbors import find_all_reachable_neighbors
+
 
 def generate_proton_transfer_product_e4(smiles, output_file="proton_transfer_product_e4.com", charge=1, mult=1,
-                                        mem="30GB", nproc=16, method="m062x", basis="6-31g(d)"):
+                                        mem="180GB", nproc=40, method="m062x", basis="6-311+g(2d,p)"):
     """
     Generate Gaussian input for proton-transferred product of cycloaddition (stable ion)
 
@@ -62,6 +62,21 @@ def generate_proton_transfer_product_e4(smiles, output_file="proton_transfer_pro
 
     if not n_plus:
         raise ValueError("Hydrazine core not found: N⁺ must have one single bond to N and one double bond to C")
+
+    terminal_n_hs = [nbr for nbr in terminal_n.GetNeighbors()
+                     if nbr.GetSymbol() == "H"]
+    if not terminal_n_hs and terminal_n.GetTotalNumHs() < 1:
+        raise ValueError("Terminal nitrogen must have at least one hydrogen")
+
+    # Verify iminium carbon is attached to benzene
+    benzene_ring = False
+    for nbr in iminium_c.GetNeighbors():
+        if nbr.GetSymbol() == "C" and nbr.GetIsAromatic():
+            benzene_ring = True
+            break
+
+    if not benzene_ring:
+        raise ValueError("Iminium carbon must be attached to a benzene ring")
 
     # Create dec-5-ene molecule
     decene_mol = Chem.MolFromSmiles("CCCCC=CCCCC")
@@ -203,7 +218,7 @@ def generate_proton_transfer_product_e4(smiles, output_file="proton_transfer_pro
     for bond in ion_mol.GetBonds():
         atom1_idx = bond.GetBeginAtomIdx()
         atom2_idx = bond.GetEndAtomIdx()
-        bond_order = int(bond.GetBondTypeAsDouble())
+        bond_order = bond.GetBondTypeAsDouble()
 
         # Create canonical representation
         bond_key = tuple(sorted([atom1_idx, atom2_idx]))
@@ -213,7 +228,7 @@ def generate_proton_transfer_product_e4(smiles, output_file="proton_transfer_pro
         max_idx = max(atom1_idx, atom2_idx)
 
         if bond_key not in added_bonds:
-            atom_bonds[min_idx].append(f"{max_idx + 1} {bond_order}.0")
+            atom_bonds[min_idx].append(f"{max_idx + 1} {bond_order}")
             added_bonds.add(bond_key)
 
     for i in range(ion_mol.GetNumAtoms()):
@@ -224,8 +239,8 @@ def generate_proton_transfer_product_e4(smiles, output_file="proton_transfer_pro
 
     # Route section for optimization and frequency calculation
     route = (
-        f"# opt {method}/{basis} freq=noraman "
-        "int=grid=ultrafine temperature=298"
+        f"# {basis} scrf=(solvent=Dichloromethane,CPCM) geom=connectivity\n"
+        f"empiricaldispersion=gd3 int=grid=ultrafine {method} sp"
     )
 
     input_content = f"""%mem={mem}
@@ -293,6 +308,21 @@ def generate_cycloreversion_ts_e5(smiles, output_file="ts_cycloreversion_e5.com"
 
     if not n_plus:
         raise ValueError("Hydrazine core not found: N⁺ must have one single bond to N and one double bond to C")
+
+    terminal_n_hs = [nbr for nbr in terminal_n.GetNeighbors()
+                     if nbr.GetSymbol() == "H"]
+    if not terminal_n_hs and terminal_n.GetTotalNumHs() < 1:
+        raise ValueError("Terminal nitrogen must have at least one hydrogen")
+
+    # Verify iminium carbon is attached to benzene
+    benzene_ring = False
+    for nbr in iminium_c.GetNeighbors():
+        if nbr.GetSymbol() == "C" and nbr.GetIsAromatic():
+            benzene_ring = True
+            break
+
+    if not benzene_ring:
+        raise ValueError("Iminium carbon must be attached to a benzene ring")
 
     # Record key indices
     idx_N_plus = n_plus.GetIdx()
@@ -439,15 +469,15 @@ def generate_cycloreversion_ts_e5(smiles, output_file="ts_cycloreversion_e5.com"
     # TODO Correct the new direction and identification of the new ene atoms
 
     # 15. Separate fragments
-    vec1 = pos_N_term - pos_N_plus
-    vec2 = pos_C_iminium - pos_N_plus
-    normal = np.cross(vec1, vec2)
+    vec1 = pos_C1 - pos_N_term
+    vec2 = pos_N_plus - pos_N_term
+    normal = np.cross(vec2, vec1)
     if np.linalg.norm(normal) > 1e-4:
         normal = normal / np.linalg.norm(normal)
     else:
-        normal = np.array([0.0, 0.0, 1.0])
+        normal = np.array([0.0, 0.0, -1.0])
 
-    centroid = (pos_N_plus + pos_N_term + pos_C_iminium) / 3.0
+    centroid = (pos_N_plus + pos_N_term + pos_C1) / 3.0
 
     # Find benzene atom to determine direction
     benzene_atom_idx = None
@@ -455,22 +485,24 @@ def generate_cycloreversion_ts_e5(smiles, output_file="ts_cycloreversion_e5.com"
         if nbr.GetSymbol() == "C" and nbr.GetIsAromatic():
             benzene_atom_idx = nbr.GetIdx()
             break
-
+    '''
     # Determine displacement direction away from benzene
     if benzene_atom_idx is not None:
         pos_benzene = np.array(conf.GetAtomPosition(benzene_atom_idx))
         benzene_vec = pos_benzene - centroid
         direction = np.sign(np.dot(normal, benzene_vec)) * normal
-    else:
-        direction = normal
+    else: 
+    '''
+    direction = normal
 
     displacement = direction * 2.0
 
     # Apply displacement to decene atoms
-    decene_atoms = [i for i in range(n_hydrazine, ts_mol.GetNumAtoms())
-                    if i != new_h_idx]  # Exclude the transferred hydrogen
+    ene_atoms = find_all_reachable_neighbors(ts_mol.GetAtomWithIdx(idx_alkene_C2_combined), lambda atom : atom.GetNeighbors())
+    ene_atoms_idx = [atom.GetIdx() for atom in ene_atoms]
+    # Exclude the transferred hydrogen
 
-    for i in decene_atoms:
+    for i in ene_atoms_idx:
         pos = np.array(conf.GetAtomPosition(i))
         new_pos = pos + displacement
         conf.SetAtomPosition(i, Point3D(*new_pos))
@@ -536,11 +568,12 @@ Charge: {charge}, Mult: {mult}
 
     return output_file
 
+
 if __name__ == "__main__":
     # Your example SMILES that previously failed
     example_smiles = "C[N+](N)=CC1=CC=CC=C1"
     try:
-        output_file = generate_cycloreversion_ts_e5(example_smiles, "cycloreversion_ts.com")
+        output_file = generate_proton_transfer_product_e4(example_smiles)
         print(f"Successfully created: {output_file}")
     except Exception as e:
         print(f"Error: {str(e)}")
